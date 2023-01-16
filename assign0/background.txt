@@ -1,0 +1,18 @@
+// File: background.txt
+1) Bitwise OR gives 0xff which is 255 in decimal
+0xFF0000
+
+2) V/R = 3 / 1.5 = 2 mA
+
+3) To change directory to /etc, I did cd /etc,
+then I did ls to list all the files. I picked localtime as the file
+to find the number of bytes of. 
+I did wc -c localtime to find that it was 2835 bytes.
+I then dud ls /etc | wc -l to find that /etc had 78 files in it and I did
+echo */ | wc to find that /etc had 22 directories in it.
+
+4) Absolute path to cs107e folder is /Users/aanyatashfeen/cs107e_home/cs107e.github.io/cs107e. Relative path to the cs107e environment set up is ~/cs107e_home/cs107e.
+
+5) Vim is my chosen text editor. I added syntax highlighting, a color scheme, and line numbers. I will use vim tutor to get more familiar with using my vim text editor. I have configured git to vim.
+
+6) commit is essentially git's version of saying save. In git, you can have a master branch and then also create other branches if you don't want to edit the master directly because you're unsure of changes you're making. You can then merge the branches added later, if you want to merge the branches/changes made after committing the changes.
