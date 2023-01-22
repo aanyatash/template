@@ -24,11 +24,11 @@ pins_output:
 ldr r0, FSEL2 // stores FSEL2 address in r0
 str r1, [r0] // makes GPIO 20 an output pin
 
+loop: 
+
 mov r3, #PINS
 // set bit 20
 mov r1, #(1<<20)
-
-loop: 
 
 scanner_right:
 
@@ -48,16 +48,37 @@ scanner_right:
     ldr r0, CLR0
     str r1, [r0]
 
-    // delay
-    mov r2, #DELAY
-    wait2:
-        subs r2, #1
-        bne wait2
-
     mov r1, r1, LSL #1
     //mov r1, #(1<<21)
     
 bne scanner_right
+
+mov r3, #PINS
+//mov r1, r1, LSR #2
+
+scanner_left:
+
+    subs r3, #1
+    
+    // set GPIO 20 high
+    ldr r0, SET0
+    str r1, [r0] 
+
+    // delay
+    mov r2, #DELAY
+    wait1_left:
+        subs r2, #1
+        bne wait1_left
+
+    // set GPIO 20 low
+    ldr r0, CLR0
+    str r1, [r0]
+
+    mov r1, r1, LSR #1
+    //mov r1, #(1<<21)
+    
+bne scanner_left
+
 
 b loop
  
@@ -77,14 +98,6 @@ b loop
  
 
  
- 
- 
- 
- 
 
- 
- 
- 
-b
 
 
