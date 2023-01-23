@@ -24,157 +24,55 @@ ldr r0, FSEL2 // stores FSEL2 address in r0
 str r1, [r0] // makes GPIO 20-27 an output pin
 
 mov r1, #(1<<20)
-mov r3, #0x8
+mov r3, #PINS
 
-looptest:
+loop:
 
-//mov r1, #(1<<20)
-//mov r3, #0x8
-
-testright:
+scanner_right:
     ldr r0, SET0
     str r1, [r0] 
 
     // delay
     mov r2, #DELAY
-    waittest:
+    wait1:
         subs r2, #1
-        bne waittest
+        bne wait1
 
     // set GPIO 20 low
     ldr r0, CLR0
     str r1, [r0]
     mov r1, r1, LSL #1
     subs r3, #1
-bne testright
 
-mov r1, #(1<<26)
-mov r4, #0x8
+bne scanner_right
 
-testleft:
+mov r1, r1, LSR #1
+mov r3, #PINS
+
+scanner_left:
     ldr r0, SET0
     str r1, [r0] 
 
     // delay
     mov r2, #DELAY
-    waittestleft:
+    wait2:
         subs r2, #1
-        bne waittestleft
+        bne wait2
 
     // set GPIO 20 low
     ldr r0, CLR0
     str r1, [r0]
     mov r1, r1, LSR #1
-    subs r4, #1
+    subs r3, #1
 
-bne testleft
+bne scanner_left
 
-mov r3, #0x8
-mov r1, #(1<<21)
+mov r3, #PINS
+mov r1, r1, LSL #1
 
-b looptest
+b loop
 
-#mov r3, #PINS
-#sub r3, r3, #1
-#// set bit 20
-#mov r1, #(1<<20)
-#
-#    // set GPIO 20 high
-#    ldr r0, SET0
-#    str r1, [r0] 
-#
-#    // delay
-#    mov r2, #DELAY
-#    wait_initial:
-#        subs r2, #1
-#        bne wait_initial
-#
-#    // set GPIO 20 low
-#    ldr r0, CLR0
-#    str r1, [r0]
-#
-#    // delay
-#    mov r2, #DELAY
-#    wait_initial2:
-#        subs r2, #1
-#        bne wait_initial2
-#
-#
-#loop: 
-#
-#scanner_right:
-#
-#    subs r3, #1
-#    mov r1, r1, LSL #1
-#
-#    // set GPIO 20 high
-#    ldr r0, SET0
-#    str r1, [r0] 
-#
-#    // delay
-#    mov r2, #DELAY
-#    wait1:
-#        subs r2, #1
-#        bne wait1
-#
-#    // set GPIO 20 low
-#    ldr r0, CLR0
-#    str r1, [r0]
-#
-#    //mov r1, r1, LSL #1
-#    //mov r1, #(1<<21)
-# 
-#    // delay
-#    mov r2, #DELAY
-#    wait2:
-#        subs r2, #1
-#        bne wait2
-#
-#   
-#    bne scanner_right
-#
-#mov r3, #PINS
-#sub r3, r3, #1
-#//mov r1, r1, LSR #1
-#
-#scanner_left:
-#
-#    subs r3, #1
-#    mov r1, r1, LSR #1
-#    
-#    // set GPIO 20 high
-#    ldr r0, SET0
-#    str r1, [r0] 
-#
-#    // delay
-#    mov r2, #DELAY
-#    wait1_left:
-#        subs r2, #1
-#        bne wait1_left
-#
-#    // set GPIO 20 low
-#    ldr r0, CLR0
-#    str r1, [r0]
-#
-#    // delay
-#    mov r2, #DELAY
-#    wait2_left:
-#        subs r2, #1
-#        bne wait2_left
-#
-#
-#  //  mov r1, r1, LSR #1
-#    //mov r1, #(1<<21)
-#    
-#   bne scanner_left
-#
-#mov r3, #PINS
-#sub r3, r3, #1
-#// set bit 20
-#//mov r1, #(1<<20)
-#
-#b loop
- 
+
  FSEL0: .word 0x20200000
  FSEL1: .word 0x20200004
  FSEL2: .word 0x20200008
