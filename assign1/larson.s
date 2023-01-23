@@ -9,13 +9,13 @@
  */
 
 .equ DELAY, 0x7E000
-.equ PINS, 0x8  // number of pins we're using is 8
+.equ PINS, 0x8  // number of pins/LEDs we're using is 8
 
 mov r2, #PINS // store number of pins in r2
 // configure GPIO20 for output
 mov r1, #0 // stores binary value for accessing GPIO 20 in r1
 pins_output:
-    subs r2, #1 // subtracts one from pins configured  counter
+    subs r2, #1 // subtracts one from pins configured counter
     mov r1, r1, LSL #3 // stores binary value for accessing next GPIO pin in r1
     add r1, r1, #1 // makes it input pin
     bne pins_output // loop continues until all pins have been configured
@@ -23,14 +23,17 @@ pins_output:
 ldr r0, FSEL2 // stores FSEL2 address in r0
 str r1, [r0] // makes GPIO 20-27 an output pin
 
-mov r1, #(1<<20)
+mov r1, #(1<<20) // sets voltage of leftmost pin GPIO as high 
 mov r3, #PINS
 
 loop:
 
+// moves through each LED from left to right
 scanner_right:
+
+    // set GPIO high
     ldr r0, SET0
-    str r1, [r0] 
+    str r1, [r0]
 
     // delay
     mov r2, #DELAY
@@ -38,18 +41,22 @@ scanner_right:
         subs r2, #1
         bne wait1
 
-    // set GPIO 20 low
+    // set GPIO low
     ldr r0, CLR0
     str r1, [r0]
-    mov r1, r1, LSL #1
-    subs r3, #1
+    mov r1, r1, LSL #1 // moves on to pin to the right
+    subs r3, #1 // counter for each pin
 
 bne scanner_right
 
-mov r1, r1, LSR #1
-mov r3, #PINS
+mov r1, r1, LSR #1 // skips over end LED when going back
+mov r3, #PINS // restart counter for pins
 
+
+// moves through each LED from right to left
 scanner_left:
+
+    // set GPIO high
     ldr r0, SET0
     str r1, [r0] 
 
@@ -59,16 +66,16 @@ scanner_left:
         subs r2, #1
         bne wait2
 
-    // set GPIO 20 low
+    // set GPIO low
     ldr r0, CLR0
     str r1, [r0]
-    mov r1, r1, LSR #1
-    subs r3, #1
+    mov r1, r1, LSR #1 // moves onto pin to the left
+    subs r3, #1 // counter for each pin
 
 bne scanner_left
 
-mov r3, #PINS
-mov r1, r1, LSL #1
+mov r3, #PINS // resets pin counter
+mov r1, r1, LSL #1 // skips over end LED when going back
 
 b loop
 
