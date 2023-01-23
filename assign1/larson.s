@@ -1,11 +1,11 @@
-/*
+/* Name: Aanya Tashfeen
+ * Filename: larson.s
+ *
  * LARSON SCANNER
  *
- * Currently this code is the blink code copied from lab 1.
+ * Implementation of the larson scanner for assignment 1.
  *
- * Modify the code to implement the larson scanner for assignment 1.
- *
- * Make sure to use GPIO pins 20-23 (or 20-27) for your scanner.
+ * Use GPIO pins 20-27 for scanner
  */
 
 .equ DELAY, 0x7E000
