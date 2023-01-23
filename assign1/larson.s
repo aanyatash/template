@@ -11,8 +11,8 @@
 .equ DELAY, 0x3F0
 .equ MID_BRIGHT_ON,0xFC
 .equ MID_BRIGHT_OFF,0x7E0
-.equ LOW_BRIGHT_ON,0xFC
-.equ LOW_BRIGHT_OFF,0x1F80
+.equ LOW_BRIGHT_ON,0x7E
+.equ LOW_BRIGHT_OFF,0x7E0
 .equ PINS, 0x8  // number of pins/LEDs we're using is 8
 
 mov r2, #PINS // store number of pins in r2
@@ -43,14 +43,14 @@ lscanner_right:
     mov r2, #DELAY
     lwait1:
 
-        mov r4, #LOW_BRIGHT_ON
+        mov r4, #MID_BRIGHT_ON
 	ldr r0, SET0
 	str r1, [r0]
 	brighton:
 	    subs r4, #1
             bne brighton
 
-	mov r4, #LOW_BRIGHT_OFF
+	mov r4, #MID_BRIGHT_OFF
 	ldr r0, CLR0
 	str r1, [r0]
         brightoff:
@@ -77,58 +77,58 @@ b loopbright
 
 
 
-loop:
-
-// moves through each LED from left to right
-scanner_right:
-
-    // set GPIO high
-    ldr r0, SET0
-    str r1, [r0]
-
-    // delay
-    mov r2, #DELAY
-    wait1:
-        subs r2, #1
-        bne wait1
-
-    // set GPIO low
-    ldr r0, CLR0
-    str r1, [r0]
-    mov r1, r1, LSL #1 // moves on to pin to the right
-    subs r3, #1 // counter for each pin
-
-bne scanner_right
-
-mov r1, r1, LSR #1 // skips over end LED when going back
-mov r3, #PINS // restart counter for pins
-
-
-// moves through each LED from right to left
-scanner_left:
-
-    // set GPIO high
-    ldr r0, SET0
-    str r1, [r0] 
-
-    // delay
-    mov r2, #DELAY
-    wait2:
-        subs r2, #1
-        bne wait2
-
-    // set GPIO low
-    ldr r0, CLR0
-    str r1, [r0]
-    mov r1, r1, LSR #1 // moves onto pin to the left
-    subs r3, #1 // counter for each pin
-
-bne scanner_left
-
-mov r3, #PINS // resets pin counter
-mov r1, r1, LSL #1 // skips over end LED when going back
-
-b loop
+#loop:
+#
+#// moves through each LED from left to right
+#scanner_right:
+#
+#    // set GPIO high
+#    ldr r0, SET0
+#    str r1, [r0]
+#
+#    // delay
+#    mov r2, #DELAY
+#    wait1:
+#        subs r2, #1
+#        bne wait1
+#
+#    // set GPIO low
+#    ldr r0, CLR0
+#    str r1, [r0]
+#    mov r1, r1, LSL #1 // moves on to pin to the right
+#    subs r3, #1 // counter for each pin
+#
+#bne scanner_right
+#
+#mov r1, r1, LSR #1 // skips over end LED when going back
+#mov r3, #PINS // restart counter for pins
+#
+#
+#// moves through each LED from right to left
+#scanner_left:
+#
+#    // set GPIO high
+#    ldr r0, SET0
+#    str r1, [r0] 
+#
+#    // delay
+#    mov r2, #DELAY
+#    wait2:
+#        subs r2, #1
+#        bne wait2
+#
+#    // set GPIO low
+#    ldr r0, CLR0
+#    str r1, [r0]
+#    mov r1, r1, LSR #1 // moves onto pin to the left
+#    subs r3, #1 // counter for each pin
+#
+#bne scanner_left
+#
+#mov r3, #PINS // resets pin counter
+#mov r1, r1, LSL #1 // skips over end LED when going back
+#
+#b loop
 
 
  FSEL0: .word 0x20200000
