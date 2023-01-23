@@ -8,7 +8,11 @@
  * Use GPIO pins 20-27 for scanner
  */
 
-.equ DELAY, 0x7E000
+.equ DELAY, 0x3F0
+.equ MID_BRIGHT_ON,0xFC
+.equ MID_BRIGHT_OFF,0x7E0
+.equ LOW_BRIGHT_ON,0xFC
+.equ LOW_BRIGHT_OFF,0x1F80
 .equ PINS, 0x8  // number of pins/LEDs we're using is 8
 
 mov r2, #PINS // store number of pins in r2
@@ -25,6 +29,53 @@ str r1, [r0] // makes GPIO 20-27 an output pin
 
 mov r1, #(1<<20) // sets voltage of leftmost pin GPIO as high 
 mov r3, #PINS
+mov r5, #(1<<21)
+
+loopbright:
+
+lscanner_right:
+
+    // set GPIO high
+    //ldr r0, SET0
+    //str r1, [r0]
+
+    // delay
+    mov r2, #DELAY
+    lwait1:
+
+        mov r4, #LOW_BRIGHT_ON
+	ldr r0, SET0
+	str r1, [r0]
+	brighton:
+	    subs r4, #1
+            bne brighton
+
+	mov r4, #LOW_BRIGHT_OFF
+	ldr r0, CLR0
+	str r1, [r0]
+        brightoff:
+	    subs r4, #1
+            bne brightoff
+
+        subs r2, #1
+        bne lwait1
+
+    // set GPIO low
+    //ldr r0, CLR0
+    //str r1, [r0]
+    mov r1, r1, LSL #1 // moves on to pin to the right
+    subs r3, #1 // counter for each pin
+    bne lscanner_right
+
+mov r1, #(1<<20)
+mov r3, #PINS
+
+b loopbright
+
+
+
+
+
 
 loop:
 
@@ -88,13 +139,6 @@ b loop
  CLR0:  .word 0x20200028
  CLR1:  .word 0x2020002C
  
- 
- 
-
- 
- 
- 
-
  
 
 
