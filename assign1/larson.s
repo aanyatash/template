@@ -8,7 +8,7 @@
  * Use GPIO pins 20-27 for scanner
  */
 
-.equ DELAY, 0x3F00
+.equ DELAY, 0x3F0000
 .equ MID_BRIGHT_ON,0xFC
 .equ MID_BRIGHT_OFF,0x762
 .equ LOW_BRIGHT_ON,0x7E
@@ -103,7 +103,7 @@ scanner_right:
 
 	both_on_wait:
 	    sub r7, r7, #1 // Mid on counter
-//            sub r2, r2, #1 // Total delay counter
+            sub r2, r2, #1 // Total delay counter
 	    subs r4, #1 // Low on counter
             bne both_on_wait
        	mov r4, #LOW_BRIGHT_OFF
@@ -112,20 +112,20 @@ scanner_right:
 	str r5, [r0] // turn low off
 	one_on_wait:
 	    sub r4, r4, #1 // Low off counter
-//	    sub r2, r2, #1 // Total delay counter
+	    sub r2, r2, #1 // Total delay counter
 	    subs r7, #1 // Mid on counter
 	    bne one_on_wait
 	//sub r1, r1, r6	
 	ldr r0, CLR0
 	str r6, [r0] // turn mid off
         both_off_wait:
-//	    sub r2, r2, #1 // Total delay counter
+	    sub r2, r2, #1 // Total delay counter
 	    subs r4, #1 // Low off counter
             bne both_off_wait
 //	ldr r0, SET0
  //       str r1, [r0]
         subs r2, #1
-        bne wait1
+        bpl wait1
 
     // set GPIO low
     ldr r0, CLR0
