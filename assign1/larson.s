@@ -82,8 +82,8 @@ mov r1, #(1<<21) // sets voltage of leftmost pin GPIO as high
 mov r3, #PINS
 mov r5, #(1<<20) // low bright
 mov r6, #(1<<22) // mid bright
-add r1, r1, r5
-add r1, r1, r6
+orr r1, r1, r5
+orr r1, r1, r6
 
 loop:
 
@@ -99,7 +99,7 @@ scanner_right:
         mov r4, #LOW_BRIGHT_ON
         mov r7, #MID_BRIGHT_ON
         ldr r0, SET0
-        str r1, [r0]
+        str r1, [r0] // r1 is all of them added
 
 	both_on_wait:
 	    sub r7, r7, #1 // Mid on counter
@@ -131,6 +131,8 @@ scanner_right:
     ldr r0, CLR0
     str r1, [r0]
     mov r1, r1, LSL #1 // moves on to pins to the right
+    mov r5, r5, LSL #1
+    mov r6, r6, LSL #1
     subs r3, #1 // counter for each pin
 
 bne scanner_right
