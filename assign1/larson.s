@@ -8,7 +8,7 @@
  * Use GPIO pins 20-27 for scanner
  */
 
-.equ DELAY, 0x3F0000
+.equ DELAY, 0x1F8000
 .equ MID_BRIGHT_ON,0xFC
 .equ MID_BRIGHT_OFF,0x762
 .equ LOW_BRIGHT_ON,0x7E
@@ -78,10 +78,12 @@ str r1, [r0] // makes GPIO 20-27 an output pin
 
 
 
-mov r1, #(1<<21) // sets voltage of leftmost pin GPIO as high 
+mov r1, #(1<<20) // sets voltage of leftmost pin GPIO as high 
 mov r3, #PINS
-mov r5, #(1<<20) // low bright
-mov r6, #(1<<22) // mid bright
+mov r5, #(1<<22) // low bright
+orr r5, r5, #(1<<18)
+mov r6, #(1<<19) // mid bright
+orr r6, r6, #(1<<21)
 orr r1, r1, r5
 orr r1, r1, r6
 
@@ -137,32 +139,61 @@ scanner_right:
 
 bne scanner_right
 
-#mov r1, r1, LSR #1 // skips over end LED when going back
-#mov r3, #PINS // restart counter for pins
-#
-#// moves through each LED from right to left
-#scanner_left:
-#
-#    // set GPIO high
-#    ldr r0, SET0
-#    str r1, [r0] 
-#
-#    // delay
-#    mov r2, #DELAY
-#    wait2:
-#        subs r2, #1
-#        bne wait2
-#
-#    // set GPIO low
-#    ldr r0, CLR0
-#    str r1, [r0]
-#    mov r1, r1, LSR #1 // moves onto pin to the left
-#    subs r3, #1 // counter for each pin
-#
-#bne scanner_left
-#
-#mov r3, #PINS // resets pin counter
-#mov r1, r1, LSL #1 // skips over end LED when going back
+mov r1, r1, LSR #1 // skips over end LED when going back
+mov r5, r5, LSR #1
+mov r6, r6, LSR #1
+mov r3, #PINS // restart counter for pins
+
+// moves through each LED from right to left
+scanner_left:
+
+    mov r2, #DELAY
+    wait2:
+        mov r4, #LOW_BRIGHT_ON
+        mov r7, #MID_BRIGHT_ON
+        ldr r0, SET0
+        str r1, [r0] // r1 is all of them added
+
+	both_on_wait2:
+	    sub r7, r7, #1 // Mid on counter
+            sub r2, r2, #1 // Total delay counter
+	    subs r4, #1 // Low on counter
+            bne both_on_wait2
+       	mov r4, #LOW_BRIGHT_OFF
+	//sub r1, r1, r5
+	ldr r0, CLR0 // SAME REGISTER AS SET
+	str r5, [r0] // turn low off
+	one_on_wait2:
+	    sub r4, r4, #1 // Low off counter
+	    sub r2, r2, #1 // Total delay counter
+	    subs r7, #1 // Mid on counter
+	    bne one_on_wait2
+	//sub r1, r1, r6	
+	ldr r0, CLR0
+	str r6, [r0] // turn mid off
+        both_off_wait2:
+	    sub r2, r2, #1 // Total delay counter
+	    subs r4, #1 // Low off counter
+            bne both_off_wait2
+//	ldr r0, SET0
+ //       str r1, [r0]
+        subs r2, #1
+        bpl wait2
+
+    // set GPIO low
+    ldr r0, CLR0
+    str r1, [r0]
+    mov r1, r1, LSR #1 // moves on to pins to the right
+    mov r5, r5, LSR #1
+    mov r6, r6, LSR #1
+    subs r3, #1 // counter for each pin
+
+bne scanner_left
+
+mov r3, #PINS // resets pin counter
+mov r1, r1, LSL #1 // skips over end LED when going back
+mov r5, r5, LSL #1
+mov r6, r6, LSL #1
 
 b loop
 
