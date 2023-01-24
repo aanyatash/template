@@ -9,10 +9,10 @@
  */
 
 .equ DELAY, 0x1F8000
-.equ MID_BRIGHT_ON,0xFC
-.equ MID_BRIGHT_OFF,0x762
-.equ LOW_BRIGHT_ON,0x7E
-.equ LOW_BRIGHT_OFF,0x7E0
+.equ MID_BRIGHT_ON,0xFC // ON time for middle brightness duty cycle
+.equ MID_BRIGHT_OFF,0x762 // OFF time for middle brightness duty cycle
+.equ LOW_BRIGHT_ON,0x7E // ON time for low brightness duty cycle
+.equ LOW_BRIGHT_OFF,0x7E0 // OFF time for low brightness duty cycle
 .equ PINS, 0x8  // number of pins/LEDs we're using is 8
 
 mov r2, #PINS // store number of pins in r2
@@ -27,11 +27,11 @@ pins_output:
 ldr r0, FSEL2 // stores FSEL2 address in r0
 str r1, [r0] // makes GPIO 20-27 an output pin
 
-mov r1, #(1<<20) // sets voltage of leftmost pin GPIO as high 
+mov r1, #(1<<20) // Sets voltage of leftmost pin GPIO as high. Normal brightness pins.
 mov r3, #PINS
-mov r5, #(1<<22) // low bright
+mov r5, #(1<<22) // LOW brightness pin values stored in r5
 orr r5, r5, #(1<<18)
-mov r6, #(1<<19) // mid bright
+mov r6, #(1<<19) // MIDDLE brightness pin values stores in r6
 orr r6, r6, #(1<<21)
 orr r1, r1, r5
 orr r1, r1, r6
@@ -71,7 +71,7 @@ scanner_right:
 	    subs r4, #1 // Low brightness off counter
             bne both_off_wait
 
-        subs r2, #1
+        subs r2, #1 // delay counter
         bpl wait1
 
     // set GPIO low
@@ -157,6 +157,3 @@ b loop
  CLR1:  .word 0x2020002C
  
  
-
-
-
