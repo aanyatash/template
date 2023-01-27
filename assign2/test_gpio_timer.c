@@ -47,6 +47,25 @@ void test_gpio_set_get_function(void) {
     gpio_set_input(GPIO_PIN3);
     assert( gpio_get_function(GPIO_PIN2) == GPIO_FUNC_INPUT );
     assert( gpio_get_function(GPIO_PIN3) == GPIO_FUNC_INPUT );
+
+    unsigned int segment[8] = {GPIO_PIN26,  GPIO_PIN19, GPIO_PIN13, GPIO_PIN6,
+                               GPIO_PIN5, GPIO_PIN11, GPIO_PIN9, GPIO_PIN10};
+    unsigned int digit[4] = {GPIO_PIN21, GPIO_PIN20, GPIO_PIN16, GPIO_PIN12};
+
+    for (int i = 0; i < 8; i++) {  // configure segments
+        gpio_set_output(segment[i]);
+    }
+    assert (gpio_get_function(GPIO_PIN26) == GPIO_FUNC_OUTPUT);
+    assert (gpio_get_function(GPIO_PIN19) == GPIO_FUNC_OUTPUT);
+    assert (gpio_get_function(GPIO_PIN13) == GPIO_FUNC_OUTPUT);
+    assert (gpio_get_function(GPIO_PIN6) == GPIO_FUNC_OUTPUT);
+
+    for (int i = 0; i < 4; i++) {  // configure digits
+        gpio_set_output(digit[i]);
+    }
+    assert (gpio_get_function(GPIO_PIN21) == GPIO_FUNC_OUTPUT);
+    assert (gpio_get_function(GPIO_PIN20) == GPIO_FUNC_OUTPUT);
+ 
 }
 
 void test_gpio_read_write(void) {
@@ -85,69 +104,73 @@ void test_timer(void) {
 }
 
 
-//void test_breadboard(void) {
-//    unsigned int segment[8] = {GPIO_PIN26, GPIO_PIN19, GPIO_PIN13, GPIO_PIN6,
-//                               GPIO_PIN5, GPIO_PIN11, GPIO_PIN9, GPIO_PIN10};
-//    unsigned int digit[4] = {GPIO_PIN21, GPIO_PIN20, GPIO_PIN16, GPIO_PIN12};
-//    unsigned int button = GPIO_PIN2;
-//
-//    gpio_init();
-//    for (int i = 0; i < 8; i++) {  // configure segments
-//        gpio_set_output(segment[i]);
-//    }
-//    for (int i = 0; i < 4; i++) {  // configure digits
-//        gpio_set_output(digit[i]);
-//    }
-//    gpio_set_input(button); // configure button
-//
-//    while (1) { // loop forever (finish via button press, see below)
-//        for (int i = 0; i < 4; i++) {   // iterate over digits
-//            gpio_write(digit[i], 1);    // turn on digit
-//            for (int j = 0; j < 8; j++) {   // iterate over segments
-//                if (gpio_read(button) == 0) return; // read button, exit if button pressed
-//                gpio_write(segment[j], 1);  // turn on segment
-//                timer_delay_ms(200);
-//                gpio_write(segment[j], 0);  // turn off segment
-//            }
-//            gpio_write(digit[i], 0);    // turn off digit
-//        }
-//    }
-//}
-
 void test_breadboard(void) {
-unsigned int segment[1] = {GPIO_PIN10};
-unsigned int digit[4] = {GPIO_PIN21, GPIO_PIN20, GPIO_PIN16, GPIO_PIN12};
-unsigned int button = GPIO_PIN2;
+    unsigned int segment[8] = {GPIO_PIN26,  GPIO_PIN19, GPIO_PIN13, GPIO_PIN6,
+                               GPIO_PIN5, GPIO_PIN11, GPIO_PIN9, GPIO_PIN10};
+    unsigned int digit[4] = {GPIO_PIN21, GPIO_PIN20, GPIO_PIN16, GPIO_PIN12};
+    unsigned int button = GPIO_PIN2;
 
-gpio_init();
-for (int i = 0; i < 8; i++) {  // configure segments
-    gpio_set_output(segment[i]);
-}
-for (int i = 0; i < 4; i++) {  // configure digits
-    gpio_set_output(digit[i]);
-}
-gpio_set_input(button); // configure button
+    gpio_init();
+    for (int i = 0; i < 8; i++) {  // configure segments
+        gpio_set_output(segment[i]);
+    }
 
-while (1) { // loop forever (finish via button press, see below)
-    for (int i = 0; i < 4; i++) {   // iterate over digits
-	gpio_write(digit[i], 1);    // turn on digit
-	for (int j = 0; j < 1; j++) {   // iterate over segments
-	    if (gpio_read(button) == 0) return; // read button, exit if button pressed
-	    gpio_write(segment[j], 1);  // turn on segment
-	    timer_delay_ms(200);
-	    gpio_write(segment[j], 0);  // turn off segment
-	}
-	gpio_write(digit[i], 0);    // turn off digit
+    for (int i = 0; i < 4; i++) {  // configure digits
+        gpio_set_output(digit[i]);
+    }
+ 
+    gpio_set_input(button); // configure button
+
+    while (1) { // loop forever (finish via button press, see below)
+        for (int i = 0; i < 4; i++) {   // iterate over digits
+            gpio_write(digit[i], 1);    // turn on digit
+            for (int j = 0; j < 8; j++) {   // iterate over segments
+                if (gpio_read(button) == 0) return; // read button, exit if button pressed
+                gpio_write(segment[j], 1);  // turn on segment
+                timer_delay_ms(200);
+                gpio_write(segment[j], 0);  // turn off segment
+            }
+            gpio_write(digit[i], 0);    // turn off digit
+        }
     }
 }
-}
+
+//void test_breadboard(void) {
+//unsigned int segment[1] = {GPIO_PIN10};
+//unsigned int digit[4] = {GPIO_PIN21, GPIO_PIN20, GPIO_PIN16, GPIO_PIN12};
+//unsigned int button = GPIO_PIN2;
+//
+//gpio_init();
+//for (int i = 0; i < 8; i++) {  // configure segments
+//    gpio_set_output(segment[i]);
+//}
+//for (int i = 0; i < 4; i++) {  // configure digits
+//    gpio_set_output(digit[i]);
+//}
+//gpio_set_input(button); // configure button
+//
+//while (1) { // loop forever (finish via button press, see below)
+//    for (int i = 0; i < 4; i++) {   // iterate over digits
+//	gpio_write(digit[i], 1);    // turn on digit
+//	for (int j = 0; j < 1; j++) {   // iterate over segments
+//	    if (gpio_read(button) == 0) return; // read button, exit if button pressed
+//	    gpio_write(segment[j], 1);  // turn on segment
+//	    timer_delay_ms(200);
+//	    gpio_write(segment[j], 0);  // turn off segment
+//	}
+//	gpio_write(digit[i], 0);    // turn off digit
+//    }
+//}
+//}
+//
+
 
 // Uncomment each call below when you have implemented the functions
 // and are ready to test them
 
 void main(void) {
     test_gpio_set_get_function();
-    test_gpio_read_write();
+    //test_gpio_read_write();
     // test_timer();
-    test_breadboard();
+    //test_breadboard();
 }
