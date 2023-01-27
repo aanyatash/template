@@ -115,7 +115,7 @@ void test_breadboard(void) {
 
 void main(void) {
     test_gpio_set_get_function();
-    // test_gpio_read_write();
+    test_gpio_read_write();
     // test_timer();
     // test_breadboard();
 }

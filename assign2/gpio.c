@@ -3,11 +3,11 @@
 struct gpio {
     unsigned int fsel[6];
     unsigned int reservedA;
-    unsigned int set[6];
+    unsigned int set[2];
     unsigned int reservedB;
     unsigned int clr[2];
     unsigned int reservedC;
-    unsigned int lev[2];
+    volatile unsigned int lev[2];
 };
 
 
@@ -51,9 +51,28 @@ void gpio_set_output(unsigned int pin) {
 }
 
 void gpio_write(unsigned int pin, unsigned int value) {
-    // TODO: Your code goes here.
+    unsigned int register_val = pin / 32;
+    unsigned int bit_loc = pin;
+    if (pin >= 32) {
+   	 bit_loc = pin - 32;
+    }
+    if (value == 1) {
+	gpio->set[register_val] = 1 << bit_loc;
+    }
+    else {
+    	gpio->clr[register_val] = 1 << bit_loc;
+    }
 }
 
 unsigned int gpio_read(unsigned int pin) {
-    return 0;  // TODO: Your code goes here.
+    unsigned int register_val = pin / 32;
+    unsigned int bit_loc = pin;
+    if (pin >= 32) {
+   	 bit_loc = pin - 32;
+    }
+    unsigned int binary = gpio->lev[register_val];
+    unsigned int reset = 0b1 << bit_loc;
+    unsigned int result = reset & binary;
+    result = result >> bit_loc;
+    return result;
 }
