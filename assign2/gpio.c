@@ -10,12 +10,6 @@ struct gpio {
     volatile unsigned int lev[2];
 };
 
-
-//static unsigned int *FSEL =  (unsigned int *)0x20200000;
-//static unsigned int *SET0  =  (unsigned int *)0x2020001c;
-//static unsigned int *CLR0  =  (unsigned int *)0x20200028;
-//static unsigned int *LEV0  =  (unsigned int *)0x20200034;
-
 static volatile struct gpio *gpio = (struct gpio *)0x20200000;
 
 void gpio_init(void) {
@@ -23,15 +17,20 @@ void gpio_init(void) {
 }
 
 void gpio_set_function(unsigned int pin, unsigned int function) {
-   unsigned int fsel_register = pin / 10;
-   unsigned int fsel_pin = (pin % 10)*3;
-   unsigned int current = gpio->fsel[fsel_register];
-   unsigned int reset = ~(0b111 << fsel_pin);
-   unsigned int preserve = current & reset;
-   gpio->fsel[fsel_register] = preserve | (function << fsel_pin);
+   if (pin >= GPIO_PIN_FIRST && pin <= GPIO_PIN_LAST) {
+  	 unsigned int fsel_register = pin / 10;
+  	 unsigned int fsel_pin = (pin % 10)*3;
+  	 unsigned int current = gpio->fsel[fsel_register];
+  	 unsigned int reset = ~(0b111 << fsel_pin);
+  	 unsigned int preserve = current & reset;
+  	 gpio->fsel[fsel_register] = preserve | (function << fsel_pin);
+   }
 }
 
 unsigned int gpio_get_function(unsigned int pin) {
+    if (pin < GPIO_PIN_FIRST || pin > GPIO_PIN_LAST) {
+    	return GPIO_INVALID_REQUEST;
+    }
     unsigned int fsel_register = pin / 10;
     unsigned int fsel_pin = (pin % 10)*3;
     unsigned int binary =  gpio->fsel[fsel_register];
@@ -39,7 +38,6 @@ unsigned int gpio_get_function(unsigned int pin) {
     unsigned int result = reset & binary;
     result = result >> fsel_pin;
     return result;
-
 }
 
 void gpio_set_input(unsigned int pin) {
@@ -51,6 +49,9 @@ void gpio_set_output(unsigned int pin) {
 }
 
 void gpio_write(unsigned int pin, unsigned int value) {
+    if (pin < GPIO_PIN_FIRST || pin > GPIO_PIN_LAST || (value != 0 && value != 1)) {
+	return;
+    }
     unsigned int register_val = pin / 32;
     unsigned int bit_loc = pin;
     if (pin >= 32) {
@@ -64,7 +65,10 @@ void gpio_write(unsigned int pin, unsigned int value) {
     }
 }
 
-unsigned int gpio_read(unsigned int pin) {
+unsigned int gpio_read(unsigned int pin) {  
+    if (pin < GPIO_PIN_FIRST || pin > GPIO_PIN_LAST) {
+    	return GPIO_INVALID_REQUEST;
+    }
     unsigned int register_val = pin / 32;
     unsigned int bit_loc = pin;
     if (pin >= 32) {
