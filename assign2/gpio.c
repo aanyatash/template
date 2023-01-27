@@ -75,7 +75,7 @@ unsigned int gpio_read(unsigned int pin) {
    	 bit_loc = pin - 32;
     }
     unsigned int binary = gpio->lev[register_val];
-    unsigned int reset = 0b1 << bit_loc;
+    unsigned int reset = 1 << bit_loc;
     unsigned int result = reset & binary;
     result = result >> bit_loc;
     return result;
