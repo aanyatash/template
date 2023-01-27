@@ -1,11 +1,13 @@
 #include "timer.h"
 
+static volatile unsigned int *TIMER = (unsigned int*) 0x20003004;
+
 void timer_init(void) {
 }
 
 unsigned int timer_get_ticks(void) {
-    return 0;  // TODO: Your code goes here.
-}
+    return *TIMER;
+ }
 
 void timer_delay_us(unsigned int usecs) {
     unsigned int start = timer_get_ticks();

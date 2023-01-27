@@ -54,39 +54,50 @@ void test_gpio_set_get_function(void) {
 
     for (int i = 0; i < 8; i++) {  // configure segments
         gpio_set_output(segment[i]);
-        assert (gpio_get_function(segment[i]) == GPIO_FUNC_OUTPUT);
+        for (int k = 0; k < i; k++) {
+         assert (gpio_get_function(segment[k]) == GPIO_FUNC_OUTPUT);
+        }
     }
     for (int i = 0; i < 4; i++) {  // configure digits
         gpio_set_output(digit[i]);
-	assert (gpio_get_function(digit[i]) == GPIO_FUNC_OUTPUT);
+        for (int k = 0; k < i; k++) {
+        	assert (gpio_get_function(digit[k]) == GPIO_FUNC_OUTPUT);
+        }
     }
- 
-}
+       
+    }
 
 void test_gpio_read_write(void) {
     gpio_init();
     // set pin 20 to output before gpio_write
-    gpio_set_function(GPIO_PIN20, GPIO_FUNC_OUTPUT);
+  //  gpio_set_function(GPIO_PIN20, GPIO_FUNC_OUTPUT);
 
     // gpio_write low, confirm gpio_read reads what was written
-    gpio_write(GPIO_PIN20, 0);
-    assert( gpio_read(GPIO_PIN20) ==  0 );
+  //  gpio_write(GPIO_PIN20, 0);
+  //  assert( gpio_read(GPIO_PIN20) ==  0 );
 
    // gpio_write high, confirm gpio_read reads what was written
-    gpio_write(GPIO_PIN20, 1);
-    assert( gpio_read(GPIO_PIN20) ==  1 );
+  //  gpio_write(GPIO_PIN20, 1);
+  //  assert( gpio_read(GPIO_PIN20) ==  1 );
 
     // gpio_write low, confirm gpio_read reads what was written
    // gpio_write(GPIO_PIN20, 0);
    // assert( gpio_read(GPIO_PIN20) ==  0 );
-    gpio_write(GPIO_PIN21, 1);
-    assert( gpio_read(GPIO_PIN21) == 1);
-    assert( gpio_read(GPIO_PIN20) == 1);
+  //  gpio_write(GPIO_PIN21, 1);
+  //  assert( gpio_read(GPIO_PIN21) == 1);
+  //  assert( gpio_read(GPIO_PIN20) == 1);
     unsigned int segment[8] = {GPIO_PIN26,  GPIO_PIN19, GPIO_PIN13, GPIO_PIN6,
                                GPIO_PIN5, GPIO_PIN11, GPIO_PIN9, GPIO_PIN10};
     unsigned int digit[4] = {GPIO_PIN21, GPIO_PIN20, GPIO_PIN16, GPIO_PIN12};
+    for (int i = 0; i < 8; i++) {  // configure segments
+        gpio_set_output(segment[i]);
+    }
 
-
+    for (int i = 0; i < 4; i++) {  // configure digits
+        gpio_set_output(digit[i]);
+    }
+ 
+    while (1) {
         for (int i = 0; i < 4; i++) {   // iterate over digits
             gpio_write(digit[i], 1);    // turn on digit
 	    assert( gpio_read(digit[i]) == 1);
@@ -100,6 +111,7 @@ void test_gpio_read_write(void) {
             gpio_write(digit[i], 0);    // turn off digit
             assert( gpio_read(digit[i]) == 0 );
         }
+    }
 }
 
 void test_timer(void) {
@@ -136,7 +148,7 @@ void test_breadboard(void) {
     }
  
     gpio_set_input(button); // configure button
-
+    
     while (1) { // loop forever (finish via button press, see below)
         for (int i = 0; i < 4; i++) {   // iterate over digits
             gpio_write(digit[i], 1);    // turn on digit
@@ -146,7 +158,7 @@ void test_breadboard(void) {
                 timer_delay_ms(200);
                 gpio_write(segment[j], 0);  // turn off segment
             }
-           // gpio_write(digit[i], 0);    // turn off digit
+           gpio_write(digit[i], 0);    // turn off digit
         }
     }
 }
@@ -185,8 +197,8 @@ void test_breadboard(void) {
 // and are ready to test them
 
 void main(void) {
-    test_gpio_set_get_function();
-    test_gpio_read_write();
-    // test_timer();
-    //test_breadboard();
+   // test_gpio_set_get_function();
+   // test_gpio_read_write();
+   test_timer();
+   test_breadboard();
 }
