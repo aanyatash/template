@@ -2,7 +2,8 @@
 #include "timer.h"
 
 
-static unsigned char digits[16] = { 0b00111111,   // 0
+static unsigned char digits[17] = { 0b01000000,   // -
+				    0b00111111,   // 0
 				    0b00110000,   // 1
             			    0b01011011,   // 2
 				    0b01001111,   // 3
@@ -30,18 +31,20 @@ static unsigned int button = GPIO_PIN2;
 
 
 static void configure();
-static void display_single_digit( unsigned char digit_display );
-static void undisplay_single_digit();
+static void display_single_digit( unsigned char digit_display, unsigned char digit_num );
+//static void undisplay_single_digit();
+static void display_four_digits( unsigned char digit_1, unsigned char digit_2, unsigned char digit_3, unsigned char digit_4 );
 
 void main(void)
 {
-    configure();
-    gpio_write( digit[0], 1);
-    for (int i = 0; i < 16; i ++) {
-	display_single_digit( digits[i] );
-        timer_delay_ms(1000);
-        undisplay_single_digit();
-    }
+    configure(); 
+//    for (int i = 0; i < 16; i = i+4) {
+//	display_single_digit( digits[i], 1 );
+//        timer_delay_ms(1000);
+//        undisplay_single_digit();
+//    }
+
+    display_four_digits(digits[0], digits[1], digits[2], digits[3] );
 }
 
 
@@ -58,8 +61,9 @@ void configure() {
     gpio_set_input(button); // configure button
 }
 
-void display_single_digit( unsigned char digit_display ) {
+void display_single_digit( unsigned char digit_display, unsigned char digit_num ) {
     unsigned char LSB;
+    gpio_write( digit[digit_num], 1 );  // turns digit on
     for (int i = 0; i < 8; i++) {
 	LSB = digit_display & 1;
 	gpio_write( segment[i] , LSB);
@@ -73,8 +77,20 @@ void display_single_digit( unsigned char digit_display ) {
 }
 
 
-void undisplay_single_digit() {
-    for (int i = 0; i < 8; i++) {
-	gpio_write( segment[i] , 0);
+//void undisplay_single_digit() {  // NOT NEEDED
+//    for (int i = 0; i < 8; i++) {
+//	gpio_write( segment[i] , 0);
+//    }
+//}
+//
+
+void display_four_digits( unsigned char digit_1, unsigned char  digit_2, unsigned char digit_3, unsigned char digit_4 ) {
+    unsigned char to_display[4] = { digit_1, digit_2, digit_3, digit_4 };
+    while (1) {
+	for (int i = 0; i < 4; i++ ) {
+    	    display_single_digit( to_display[i], i );
+    	    timer_delay_ms(4);
+    	    gpio_write( digit[i] , 0 ); // turns one digit off
+	}
     }
 }
