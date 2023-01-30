@@ -8,7 +8,7 @@ static unsigned char digits[16] = { 0b00111111,   // 0
 				    0b01001111,   // 3
 				    0b01100110,   // 4
 				    0b01101101,   // 5
-				    0b00000111,   // 6
+				    0b01111101,   // 6
 				    0b00000111,   // 7
 				    0b01111111,   // 8
 				    0b01101111,   // 9
@@ -29,10 +29,9 @@ static unsigned int button = GPIO_PIN2;
 
 
 
-
-static display_single_digit();
-static configure();
-static undisplay_single_digit();
+static void configure();
+static void display_single_digit( unsigned char digit_display );
+static void undisplay_single_digit();
 
 void main(void)
 {
@@ -40,7 +39,7 @@ void main(void)
     gpio_write( digit[0], 1);
     for (int i = 0; i < 16; i ++) {
 	display_single_digit( digits[i] );
-        timer_delay_ms(200);
+        timer_delay_ms(1000);
         undisplay_single_digit();
     }
 }
