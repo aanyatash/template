@@ -89,7 +89,7 @@ void display_four_digits( unsigned char digit_1, unsigned char  digit_2, unsigne
     while (1) {
 	for (int i = 0; i < 4; i++ ) {
     	    display_single_digit( to_display[i], i );
-    	    timer_delay_ms(4);
+    	    timer_delay_us(2500);
     	    gpio_write( digit[i] , 0 ); // turns one digit off
 	}
     }
