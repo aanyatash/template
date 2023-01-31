@@ -33,18 +33,25 @@ static unsigned char digits[17] = { 0b00111111,   // 0
 static unsigned int segment[8] = {GPIO_PIN26,  GPIO_PIN19, GPIO_PIN13, GPIO_PIN6,
                            GPIO_PIN5, GPIO_PIN11, GPIO_PIN9, GPIO_PIN10};
 static unsigned int digit[4] = {GPIO_PIN21, GPIO_PIN20, GPIO_PIN16, GPIO_PIN12};
-static unsigned int button = GPIO_PIN2;
+static unsigned int button[2] = {GPIO_PIN2, GPIO_PIN3};
 
 static void configure();
 static void button_to_start();
 static void display_single_digit( unsigned char digit_display, unsigned char digit_num );
 static void display_four_digits( unsigned char digit_1, unsigned char digit_2, unsigned char digit_3, unsigned char digit_4 );
 static void start();
+static void flash_display();
+static void debouncing();
+static void set();
+//unsigned char set_minutes( unsigned char digit_1_i, unsigned char digit_2_i, unsigned char digit_3_i, unsigned char digit_4_i );
+//unsigned char set_seconds( unsigned char digit_1_i, unsigned char digit_2_i, unsigned char digit_3_i, unsigned char digit_4_i );
+ 
 
 void main(void)
 {
     configure();
     button_to_start();
+    set();
     start(); 
 }
 
@@ -61,7 +68,8 @@ void configure() {
         gpio_set_output(digit[i]);
     }
 
-    gpio_set_input(button); // configure button
+    gpio_set_input(button[0]); // configure buttons
+    gpio_set_input(button[1]);
 }
 
 
@@ -72,7 +80,7 @@ void configure() {
 void button_to_start() {
     while (1) {
         display_four_digits( digits[16], digits[16], digits[16], digits[16] );
-    	if (gpio_read(button) == 0) return;
+    	if (gpio_read(button[0]) == 0) return;
     }
 }
 
@@ -130,5 +138,107 @@ void start() {
 			}
 		}
 	    }
+    }
+}
+
+void flash_display() {
+    for (int i = 0; i < 3; i++) {
+	for (int j = 0; j < 4; j++) {
+	     gpio_write(digit[j], 0);
+        }
+	timer_delay_ms(500);
+       	for (int j = 0; j < 4; j++) {
+	     gpio_write(digit[j], 1);
+        }
+ 	timer_delay_ms(500);
+    }
+
+}
+
+
+void debouncing() {
+    unsigned int debounce_delay = 50*10000; // time delay in us
+    unsigned int time_pressed = timer_get_ticks();
+    while (timer_get_ticks() - time_pressed < debounce_delay) { /* spin */ }
+}
+
+void set() {
+	// need to return an array of all current digits to pass into start
+        // need to take 4 ints as arguments to know starting point
+        // flashing current number - three times
+        // increment through button clicks
+        flash_display();
+        unsigned char cur_time[4] = {0, 0, 0, 0};
+        unsigned char new_time[4];
+	while (1) {
+
+        display_four_digits(digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]],digits[cur_time[3]]); // use cur time index
+
+	if ( gpio_read(button[1]) == 0 ) { // SECONDS button
+	    if (cur_time[0] == 9 && cur_time[1] == 9 && cur_time[2] == 5 && cur_time[3] == 9) {
+		new_time[0] = 0;
+		new_time[1] = 0;
+		new_time[2] = 0;
+		new_time[3] = 0;
+	    }
+	    else if (cur_time[1] == 9 && cur_time[2] == 5 && cur_time[3] == 9) {
+		new_time[0] = cur_time[0] + 1;
+		new_time[1] = 0;
+		new_time[2] = 0;
+		new_time[3] = 0;
+	    }
+	    else if (cur_time[2] == 5 && cur_time[3] == 9) {
+		new_time[0] = cur_time[0];
+		new_time[1] = cur_time[1] + 1;
+		new_time[2] = 0;
+		new_time[3] = 0;
+	    }
+	    else if (cur_time[3] == 9) {
+		new_time[0] = cur_time[0];
+		new_time[1] = cur_time[1];
+		new_time[2] = cur_time[2] + 1;
+		new_time[3] = 0;
+	    }
+	    else {
+		new_time[0] = cur_time[0];
+		new_time[1] = cur_time[1];
+		new_time[2] = cur_time[2];
+		new_time[3] = cur_time[3] + 1;
+	    }
+	cur_time[0] = new_time[0];
+	cur_time[1] = new_time[1];
+	cur_time[2] = new_time[2];
+        cur_time[3] = new_time[3];
+        display_four_digits( digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]],digits[cur_time[3]]);
+	debouncing();
+	}
+
+
+        if ( gpio_read(button[0]) == 0 ) { // MINUTES button
+	    if (cur_time[0] == 9 && cur_time[1] == 9) {
+		new_time[0] = 0;
+		new_time[1] = 0;
+		new_time[2] = 0;
+		new_time[3] = 0;
+	    }
+	    else if (cur_time[1] == 9) {
+		new_time[0] = cur_time[0] + 1;
+		new_time[1] = 0;
+		new_time[2] = cur_time[2];
+		new_time[3] = cur_time[3];
+	    }
+	    else {
+		new_time[0] = cur_time[0];
+		new_time[1] = cur_time[1] + 1;
+		new_time[2] = cur_time[2];
+		new_time[3] = cur_time[3];
+	    }
+	cur_time[0] = new_time[0];
+	cur_time[1] = new_time[1];
+	cur_time[2] = new_time[2];
+        cur_time[3] = new_time[3];
+        display_four_digits( digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]],digits[cur_time[3]]);
+	debouncing();
+        }
     }
 }
