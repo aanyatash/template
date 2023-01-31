@@ -1,3 +1,10 @@
+/* Name: Aanya Tashfeen
+ * Filename: test_gpio_timer.c
+ * This file contains tests for the full clock breadboard, the gpio module, and
+ * the timer module.
+ */
+
+
 #include "gpio.h"
 #include "timer.h"
 
@@ -83,11 +90,31 @@ void test_gpio_read_write(void) {
     // gpio_write low, confirm gpio_read reads what was written
     gpio_write(GPIO_PIN20, 0);
     assert( gpio_read(GPIO_PIN20) ==  0 );
+    
+    // set pin 21 to output before gpio write
+    gpio_set_function(GPIO_PIN21, GPIO_FUNC_OUTPUT);
 
     // gpio_write high, confirm what was written and pin 20 still low
     gpio_write(GPIO_PIN21, 1);
     assert( gpio_read(GPIO_PIN21) == 1);
     assert( gpio_read(GPIO_PIN20) == 0);
+
+}
+
+void test_invalid(void) {
+	gpio_set_function( -1, GPIO_FUNC_OUTPUT);
+        assert( gpio_get_function( -1 )  == GPIO_INVALID_REQUEST );
+ 
+	gpio_set_function( 55, GPIO_FUNC_OUTPUT);
+        assert( gpio_get_function( 55 ) == GPIO_INVALID_REQUEST );
+
+	gpio_write(-1, 1);
+        assert( gpio_read( -1) == GPIO_INVALID_REQUEST );
+
+
+	gpio_set_function( 2, GPIO_FUNC_OUTPUT);
+	gpio_write(2, 3);
+        assert( gpio_read(2) == 0);
 
 }
 
@@ -102,7 +129,7 @@ void test_all_gpio_read_write(void) {
     for (int i = 0; i < 4; i++) {  // configure digits
         gpio_set_output(digit[i]);
     }
- 
+
     while (1) {
         for (int i = 0; i < 4; i++) {   // iterate over digits
             gpio_write(digit[i], 1);    // turn on digit
@@ -121,10 +148,6 @@ void test_all_gpio_read_write(void) {
 
 }
 
-void test_invalid(void) {
-
-}
-
 void test_timer(void) {
     timer_init();
 
@@ -140,6 +163,22 @@ void test_timer(void) {
     timer_delay_us(usecs);
     finish = timer_get_ticks();
     assert( finish >= start + usecs );
+
+    // Test msec timer delay
+    int msecs = 250;
+    start = timer_get_ticks();
+    timer_delay_ms(250);
+    finish = timer_get_ticks();
+    assert( finish >= start + 1000*msecs ); 
+
+    // Test sec timer delay
+    int secs = 3;
+    start = timer_get_ticks();
+    timer_delay(3);
+    finish = timer_get_ticks();
+    assert( finish >= start + 1000*1000*secs ); 
+
+
 }
 
 
@@ -180,6 +219,7 @@ void test_breadboard(void) {
 void main(void) {
    test_gpio_set_get_function();
    test_gpio_read_write();
-   //test_timer();
-   //test_breadboard();
+   test_timer();
+  // test_breadboard();
+   test_invalid();
 }
