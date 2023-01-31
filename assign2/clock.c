@@ -1,8 +1,8 @@
 /* Name: Aanya Tashfeen
  * Filename: clock.c
  * CS 107E Assignment 2 Extension
- * This program starts a clock by clicking a button and then 
- * counts up until 99:59
+ * This program allows time to be set on a clock by clicking two buttons and 
+ * starts the clock by holding a button down. The clock counts up until 99:59.
  */
 
 #include "gpio.h"
@@ -44,16 +44,12 @@ static void flash_display(unsigned int digit1_id, unsigned int digit2_id, unsign
 static void debouncing();
 static unsigned int long_button_press();
 static void set(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id);
-//unsigned char set_minutes( unsigned char digit_1_i, unsigned char digit_2_i, unsigned char digit_3_i, unsigned char digit_4_i );
-//unsigned char set_seconds( unsigned char digit_1_i, unsigned char digit_2_i, unsigned char digit_3_i, unsigned char digit_4_i );
- 
 
 void main(void)
 {
     configure();
-    button_to_start();
+    button_to_start(); // Must click button to start/go into set mode
     set(0, 0, 0, 0);
-    //start(0); 
 }
 
 /* This function sets all the GPIO pins for the clock display to output
@@ -118,37 +114,47 @@ void display_four_digits( unsigned char digit_1, unsigned char  digit_2, unsigne
     }
 }
 
+/* This function debounces the button to prevent any spurious reads after a button press.
+ * The function takes 4 arguments that are unsigned integers which describe the current time.
+ * This allows current time to be displayed continuously while debouncing occurs.
+ */
 void debouncing(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id ) {
-    unsigned int debounce_delay = 50*10000; // time delay in us
+    unsigned int debounce_delay = 500*1000; // time delay in us
     unsigned int time_pressed = timer_get_ticks();
-    while (timer_get_ticks() - time_pressed < debounce_delay) { 
+    while (timer_get_ticks() - time_pressed < debounce_delay) { // While loop prevents button reads
 	display_four_digits(digits[digit1_id], digits[digit2_id], digits[digit3_id], digits[digit4_id]);
     }
 }
 
-unsigned int long_button_press(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id) {
-    unsigned int start_press = timer_get_ticks();
-    debouncing(digit1_id, digit2_id, digit3_id, digit4_id);
+/* This function allows a long button to be detected. The function takes 4 arguments that are unsigned 
+ * integers which describe the current time, allowing current time to be displayed while in this function.
+ * This function returns an unsigned integer 1 or 0 which describes true or false, in terms of whether
+ * it was a long button press or not.
+ */
+unsigned int long_button_press(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id, unsigned int button_id) {
+    unsigned int start_press = timer_get_ticks(); // Start timer
+    debouncing(digit1_id, digit2_id, digit3_id, digit4_id); // Debounces button, so no spurious reads
     unsigned int long_time_press = 2000*1000; // time in microseconds for 2 seconds
     unsigned int long_pressed = 1;
     unsigned int released;
-    if (gpio_read(button[0]) == 1) {
-	released = timer_get_ticks();
+    if (gpio_read(button[button_id]) == 1) {
+	released = timer_get_ticks(); // End timer when button released
     	if (released - start_press < long_time_press) {
-		long_pressed = 0;
+		long_pressed = 0; // Not long pressed, so store and return 0
     	}
     }
     return long_pressed;
 }
 
 
-/* This function starts the timer from 00 00. The clock counts until 99:59 and
+/* This function starts the timer from whatever set time was. The clock counts until 99:59 and
  * then restarts to 00 00. This functions uses a timer.c module called timer_get_ticks()
- * which uses the Pi's internal system timer.
+ * which uses the Pi's internal system timer. The function takes 4 unsigned integers as
+ * arguments and these describe the set starting time.
  */
 void start(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id ) {
     unsigned int time_start;
-    unsigned int first_time = 1;
+    while (gpio_read(button[0]) == 0) { /* spin */ }
     while (1) {
 	    for (int i = digit1_id; i < 10; i++) {   // controls digit 1 to max at 9
 		for (int j = digit2_id; j < 10; j++) {  // controls digit 2 to max at 9
@@ -158,32 +164,34 @@ void start(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_i
 					while ((timer_get_ticks() - time_start) < 1000*1000) {
 						// Only changes displayed digit when timer counts 1 second
 						display_four_digits(digits[i], digits[j], digits[k], digits[l]);
-						if (first_time != 1) {
-							if (long_button_press(i, j, k, l)) {
-								set(i, j, k, l);
-							}
+						// Avoids checking button press until at least one second in to clock
+						if (gpio_read(button[0]) == 0) {
+							set(i, j, k, l);
 						}
-					        first_time = 0;
 					}
 				}
+				digit4_id = 0;
 			}
+			digit3_id = 0;
 		}
-	    }
-    	   digit1_id = 0;
-           digit2_id = 0;
- 	   digit3_id = 0;
+		digit2_id = 0;
+	   }
 	   digit4_id = 0;
     }
 }
 
+
+/* This function takes and input of 4 unsigned integers that describe the digits displayed in each segement.
+ * The function will then flash these digits three times. This indicates the set mode.
+ */
 void flash_display(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id) {
-   for (int i = 0; i < 3; i++) {
+   for (int i = 0; i < 3; i++) { // Flash three times
 	for (int j = 0; j < 4; j++) {
-	     gpio_write(digit[j], 0);
+	     gpio_write(digit[j], 0); // Turn all digits on display off
         }
 	timer_delay_ms(500);
 	unsigned int start = timer_get_ticks();
-	while (timer_get_ticks() - start < 500*1000) {
+	while (timer_get_ticks() - start < 500*1000) { // Turn all digits on for 500 ms
         	display_four_digits(digits[digit1_id], digits[digit2_id], digits[digit3_id], digits[digit4_id]);
 	}	
     }
@@ -191,86 +199,85 @@ void flash_display(unsigned int digit1_id, unsigned int digit2_id, unsigned int 
 }
 
 
+/* This function is essentially set mode. The function allows minutes and seconds to be set through button
+ * clicks going up and it sets it from the time the clock is stopped. To exit set mode and go into start mode,
+ * the user must click the left button for at least 2 seconds.
+ */
 void set(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id) {
-	// need to return an array of all current digits to pass into start
-        // need to take 4 ints as arguments to know starting point
-        // flashing current number - three times
-        // increment through button clicks
-        flash_display(digit1_id, digit2_id, digit3_id, digit4_id);
-        unsigned int cur_time[4] = {digit1_id, digit2_id, digit3_id, digit4_id};
-        unsigned int new_time[4];
-        //unsigned int time_to_start;
-	while (1) {
+    flash_display(digit1_id, digit2_id, digit3_id, digit4_id); // Flashes the current time
+    // stores current time in an array to keep track of time increments
+    unsigned int cur_time[4] = {digit1_id, digit2_id, digit3_id, digit4_id};
 
-        display_four_digits(digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]], digits[cur_time[3]]); // use cur time index
-	if ( gpio_read(button[1]) == 0 ) { // SECONDS button
-	    if (cur_time[0] == 9 && cur_time[1] == 9 && cur_time[2] == 5 && cur_time[3] == 9) {
-		new_time[0] = 0;
-		new_time[1] = 0;
-		new_time[2] = 0;
-		new_time[3] = 0;
+    // In set mode infinitely, until start mode triggered
+    while (1) {
+
+        display_four_digits(digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]], digits[cur_time[3]]);
+
+	if ( gpio_read(button[1]) == 0 ) { // If SECONDS button pressed
+	    // SECONDS button also reset to 0000 if pressed long enough
+	    if (long_button_press(cur_time[0], cur_time[1], cur_time[2], cur_time[3], 1)) { 
+	        while (gpio_read(button[1]) == 0) { /* spin */ }
+		cur_time[0] = 0;
+		cur_time[1] = 0;
+		cur_time[2] = 0;
+		cur_time[3] = 0;
+	 	continue;
 	    }
-	    else if (cur_time[1] == 9 && cur_time[2] == 5 && cur_time[3] == 9) {
-		new_time[0] = cur_time[0] + 1;
-		new_time[1] = 0;
-		new_time[2] = 0;
-		new_time[3] = 0;
+	    if (cur_time[0] == 9 && cur_time[1] == 9 && cur_time[2] == 5 && cur_time[3] == 9) { // If current time is 99 59
+		// Change time to 0000
+		cur_time[0] = 0;
+		cur_time[1] = 0;
+		cur_time[2] = 0;
+		cur_time[3] = 0;
 	    }
-	    else if (cur_time[2] == 5 && cur_time[3] == 9) {
-		new_time[0] = cur_time[0];
-		new_time[1] = cur_time[1] + 1;
-		new_time[2] = 0;
-		new_time[3] = 0;
+	    else if (cur_time[1] == 9 && cur_time[2] == 5 && cur_time[3] == 9) { // Otherwise, if current time is x9 59
+		// Change time to x+1 000
+		cur_time[0] += 1;
+		cur_time[1] = 0;
+		cur_time[2] = 0;
+		cur_time[3] = 0;
 	    }
-	    else if (cur_time[3] == 9) {
-		new_time[0] = cur_time[0];
-		new_time[1] = cur_time[1];
-		new_time[2] = cur_time[2] + 1;
-		new_time[3] = 0;
+	    else if (cur_time[2] == 5 && cur_time[3] == 9) { // Otherwise, if current time is xy 59
+		// Change time to x y+1 00
+		cur_time[1] += 1;
+		cur_time[2] = 0;
+		cur_time[3] = 0;
 	    }
-	    else {
-		new_time[0] = cur_time[0];
-		new_time[1] = cur_time[1];
-		new_time[2] = cur_time[2];
-		new_time[3] = cur_time[3] + 1;
+	    else if (cur_time[3] == 9) { // Otherwise, if current time is xy z9
+		// Change time to xy z+1 0
+		cur_time[2] += 1;
+		cur_time[3] = 0;
 	    }
-	cur_time[0] = new_time[0];
-	cur_time[1] = new_time[1];
-	cur_time[2] = new_time[2];
-        cur_time[3] = new_time[3];
-        display_four_digits( digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]],digits[cur_time[3]]);
+	    else { // Else, just change last seconds digit
+		cur_time[3] += 1;
+	    }
+        display_four_digits( digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]],digits[cur_time[3]] );
 	debouncing(cur_time[0], cur_time[1], cur_time[2], cur_time[3]);
 	continue;
 	}
 
 
-        if ( gpio_read(button[0]) == 0 ) { // MINUTES button
-	    if (long_button_press(cur_time[0], cur_time[1], cur_time[2], cur_time[3])) {
+        if ( gpio_read(button[0]) == 0 ) { // If MINUTES button pressed
+	    // MINUTES button also start mode button if pressed long enough
+	    if (long_button_press(cur_time[0], cur_time[1], cur_time[2], cur_time[3], 0)) { 
 	    	start(cur_time[0], cur_time[1], cur_time[2], cur_time[3]);
 	 	continue;
 	    }
-	    if (cur_time[0] == 9 && cur_time[1] == 9) {
-		new_time[0] = 0;
-		new_time[1] = 0;
-		new_time[2] = 0;
-		new_time[3] = 0;
+	    if (cur_time[0] == 9 && cur_time[1] == 9) { // If current time is 99 xy
+		// Change time to 0000
+		cur_time[0] = 0;
+		cur_time[1] = 0;
+		cur_time[2] = 0;
+		cur_time[3] = 0;
 	    }
-	    else if (cur_time[1] == 9) {
-		new_time[0] = cur_time[0] + 1;
-		new_time[1] = 0;
-		new_time[2] = cur_time[2];
-		new_time[3] = cur_time[3];
+	    else if (cur_time[1] == 9) { // Otherwise, ff current time is x9 yz
+		// Change time to x+1 0 yz
+		cur_time[0] += 1;
+		cur_time[1] = 0;
 	    }
-	    else {
-		new_time[0] = cur_time[0];
-		new_time[1] = cur_time[1] + 1;
-		new_time[2] = cur_time[2];
-		new_time[3] = cur_time[3];
+	    else { // Else, just change last minutes digit
+		cur_time[1] += 1;
 	    }
-	cur_time[0] = new_time[0];
-	cur_time[1] = new_time[1];
-	cur_time[2] = new_time[2];
-        cur_time[3] = new_time[3];
         display_four_digits( digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]], digits[cur_time[3]]);
 	debouncing(cur_time[0], cur_time[1], cur_time[2], cur_time[3]);
 	continue;
