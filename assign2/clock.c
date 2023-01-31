@@ -1,6 +1,6 @@
 /* Name: Aanya Tashfeen
  * Filename: clock.c
- * CS 107E Assignment 2
+ * CS 107E Assignment 2 Extension
  * This program starts a clock by clicking a button and then 
  * counts up until 99:59
  */
@@ -39,11 +39,11 @@ static void configure();
 static void button_to_start();
 static void display_single_digit( unsigned char digit_display, unsigned char digit_num );
 static void display_four_digits( unsigned char digit_1, unsigned char digit_2, unsigned char digit_3, unsigned char digit_4 );
-static void start(unsigned int time_to_start);
-static void flash_display();
+static void start(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id );
+static void flash_display(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id);
 static void debouncing();
 static unsigned int long_button_press();
-static void set();
+static void set(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id);
 //unsigned char set_minutes( unsigned char digit_1_i, unsigned char digit_2_i, unsigned char digit_3_i, unsigned char digit_4_i );
 //unsigned char set_seconds( unsigned char digit_1_i, unsigned char digit_2_i, unsigned char digit_3_i, unsigned char digit_4_i );
  
@@ -52,7 +52,7 @@ void main(void)
 {
     configure();
     button_to_start();
-    set();
+    set(0, 0, 0, 0);
     //start(0); 
 }
 
@@ -118,58 +118,17 @@ void display_four_digits( unsigned char digit_1, unsigned char  digit_2, unsigne
     }
 }
 
-/* This function starts the timer from 00 00. The clock counts until 99:59 and
- * then restarts to 00 00. This functions uses a timer.c module called timer_get_ticks()
- * which uses the Pi's internal system timer.
- */
-void start(unsigned int time_to_start) {
-    unsigned int cur_time[4] = { time_to_start / 1000, time_to_start / 100, time_to_start / 10, time_to_start % 10 };
-    unsigned int time_start;
-    while (1) {
-	    for (int i = cur_time[0]; i < 10; i++) {   // controls digit 1 to max at 9
-		for (int j = cur_time[1]; j < 10; j++) {  // controls digit 2 to max at 9
-			for (int k = cur_time[2]; k < 6; k++) {  // controls digit 3 to max at 6 as seconds timer can't exceed 60
-				for (int l = cur_time[3]; l < 10; l++) {  // controls digit 4 to max at 9
-					time_start = timer_get_ticks(); // uses Pi's system timer to count time
-					while ((timer_get_ticks() - time_start) < 1000*1000) {
-						// Only changes displayed digit when timer counts 1 second
-						display_four_digits(digits[i], digits[j], digits[k], digits[l]);
-						
-					}
-				}
-			}
-		}
-	    }
-    	   cur_time[0] = 0;
-           cur_time[1] = 0;
- 	   cur_time[2] = 0;
-	   cur_time[3] = 0;
-    }
-}
-
-void flash_display() {
-    for (int i = 0; i < 3; i++) {
-	for (int j = 0; j < 4; j++) {
-	     gpio_write(digit[j], 0);
-        }
-	timer_delay_ms(500);
-       	for (int j = 0; j < 4; j++) {
-	     gpio_write(digit[j], 1);
-        }
- 	timer_delay_ms(500);
-    }
-
-}
-
-void debouncing() {
+void debouncing(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id ) {
     unsigned int debounce_delay = 50*10000; // time delay in us
     unsigned int time_pressed = timer_get_ticks();
-    while (timer_get_ticks() - time_pressed < debounce_delay) { /* spin */ }
+    while (timer_get_ticks() - time_pressed < debounce_delay) { 
+	display_four_digits(digits[digit1_id], digits[digit2_id], digits[digit3_id], digits[digit4_id]);
+    }
 }
 
-unsigned int long_button_press() {
+unsigned int long_button_press(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id) {
     unsigned int start_press = timer_get_ticks();
-    debouncing();
+    debouncing(digit1_id, digit2_id, digit3_id, digit4_id);
     unsigned int long_time_press = 2000*1000; // time in microseconds for 2 seconds
     unsigned int long_pressed = 1;
     unsigned int released;
@@ -182,19 +141,68 @@ unsigned int long_button_press() {
     return long_pressed;
 }
 
-void set() {
+
+/* This function starts the timer from 00 00. The clock counts until 99:59 and
+ * then restarts to 00 00. This functions uses a timer.c module called timer_get_ticks()
+ * which uses the Pi's internal system timer.
+ */
+void start(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id ) {
+    unsigned int time_start;
+    unsigned int first_time = 1;
+    while (1) {
+	    for (int i = digit1_id; i < 10; i++) {   // controls digit 1 to max at 9
+		for (int j = digit2_id; j < 10; j++) {  // controls digit 2 to max at 9
+			for (int k = digit3_id; k < 6; k++) {  // controls digit 3 to max at 6 as seconds timer can't exceed 60
+				for (int l = digit4_id; l < 10; l++) {  // controls digit 4 to max at 9
+					time_start = timer_get_ticks(); // uses Pi's system timer to count time
+					while ((timer_get_ticks() - time_start) < 1000*1000) {
+						// Only changes displayed digit when timer counts 1 second
+						display_four_digits(digits[i], digits[j], digits[k], digits[l]);
+						if (first_time != 1) {
+							if (long_button_press(i, j, k, l)) {
+								set(i, j, k, l);
+							}
+						}
+					        first_time = 0;
+					}
+				}
+			}
+		}
+	    }
+    	   digit1_id = 0;
+           digit2_id = 0;
+ 	   digit3_id = 0;
+	   digit4_id = 0;
+    }
+}
+
+void flash_display(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id) {
+   for (int i = 0; i < 3; i++) {
+	for (int j = 0; j < 4; j++) {
+	     gpio_write(digit[j], 0);
+        }
+	timer_delay_ms(500);
+	unsigned int start = timer_get_ticks();
+	while (timer_get_ticks() - start < 500*1000) {
+        	display_four_digits(digits[digit1_id], digits[digit2_id], digits[digit3_id], digits[digit4_id]);
+	}	
+    }
+
+}
+
+
+void set(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id) {
 	// need to return an array of all current digits to pass into start
         // need to take 4 ints as arguments to know starting point
         // flashing current number - three times
         // increment through button clicks
-        flash_display();
-        unsigned int cur_time[4] = {0, 0, 0, 0};
+        flash_display(digit1_id, digit2_id, digit3_id, digit4_id);
+        unsigned int cur_time[4] = {digit1_id, digit2_id, digit3_id, digit4_id};
         unsigned int new_time[4];
-        unsigned int time_to_start;
+        //unsigned int time_to_start;
 	while (1) {
 
         display_four_digits(digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]], digits[cur_time[3]]); // use cur time index
-	time_to_start = cur_time[0]*1000 + cur_time[1]*100 + cur_time[2]*10 + cur_time[3];
 	if ( gpio_read(button[1]) == 0 ) { // SECONDS button
 	    if (cur_time[0] == 9 && cur_time[1] == 9 && cur_time[2] == 5 && cur_time[3] == 9) {
 		new_time[0] = 0;
@@ -231,17 +239,14 @@ void set() {
 	cur_time[2] = new_time[2];
         cur_time[3] = new_time[3];
         display_four_digits( digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]],digits[cur_time[3]]);
-	debouncing();
+	debouncing(cur_time[0], cur_time[1], cur_time[2], cur_time[3]);
 	continue;
 	}
 
 
         if ( gpio_read(button[0]) == 0 ) { // MINUTES button
-	    if (long_button_press()) {
-		display_four_digits( digits[1], digits[1], digits[1], digits[1] );
-		timer_delay(10);
-		time_to_start = cur_time[0]*1000 + cur_time[1]*100 + cur_time[2]*10 + cur_time[3];
-	    	start(time_to_start);
+	    if (long_button_press(cur_time[0], cur_time[1], cur_time[2], cur_time[3])) {
+	    	start(cur_time[0], cur_time[1], cur_time[2], cur_time[3]);
 	 	continue;
 	    }
 	    if (cur_time[0] == 9 && cur_time[1] == 9) {
@@ -266,8 +271,8 @@ void set() {
 	cur_time[1] = new_time[1];
 	cur_time[2] = new_time[2];
         cur_time[3] = new_time[3];
-        display_four_digits( digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]],digits[cur_time[3]]);
-	debouncing();
+        display_four_digits( digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]], digits[cur_time[3]]);
+	debouncing(cur_time[0], cur_time[1], cur_time[2], cur_time[3]);
 	continue;
         }
     }
