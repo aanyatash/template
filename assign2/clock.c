@@ -2,8 +2,7 @@
 #include "timer.h"
 
 
-static unsigned char digits[17] = { 0b01000000,   // -
-				    0b00111111,   // 0
+static unsigned char digits[17] = { 0b00111111,   // 0
 				    0b00110000,   // 1
             			    0b01011011,   // 2
 				    0b01001111,   // 3
@@ -18,7 +17,8 @@ static unsigned char digits[17] = { 0b01000000,   // -
 				    0b00111001,   // C (12)
 				    0b01011110,   // D (13)
 				    0b01111001,   // E (14)
-				    0b01110001 }; // F (15)
+				    0b01110001    // F (15
+				    0b01000000 }; // - (16)
 
 
 
@@ -42,7 +42,20 @@ void main(void)
 //	display_single_digit( digits[i], 1 );
 //        timer_delay_ms(1000);
 //        undisplay_single_digit();
-//    }
+
+
+// waits for button click
+// display ----  (digits[16])
+// click button
+// call start function:
+// set start time with timer get ticks
+// four for loops -- two outer to 9, third to 6, fourth to 9
+// while (timer get ticks - start) <  100 {display 0000 which is digits[0] for all}
+// increment digit_4 by 1 to give digits[1]
+
+
+// add some for loop logic to increment each number
+// max is 99 59
 
     display_four_digits(digits[0], digits[1], digits[2], digits[3] );
 }
