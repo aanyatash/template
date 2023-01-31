@@ -17,7 +17,7 @@ static unsigned char digits[17] = { 0b00111111,   // 0
 				    0b00111001,   // C (12)
 				    0b01011110,   // d (13)
 				    0b01111001,   // E (14)
-				    0b01110001,   // F (15
+				    0b01110001,   // F (15)
 				    0b01000000 }; // - (16)
 
 
@@ -31,6 +31,7 @@ static unsigned int button = GPIO_PIN2;
 
 
 static void configure();
+static void button_to_start();
 static void display_single_digit( unsigned char digit_display, unsigned char digit_num );
 static void display_four_digits( unsigned char digit_1, unsigned char digit_2, unsigned char digit_3, unsigned char digit_4 );
 static void start();
@@ -38,7 +39,8 @@ static void start();
 void main(void)
 {
     configure();
-    display_four_digits(digits[16], digits[16], digits[16], digits[16]);
+    //display_four_digits(digits[16], digits[16], digits[16], digits[16]);
+    button_to_start();
     start(); 
 //    for (int i = 0; i < 16; i = i+4) {
 //	display_single_digit( digits[i], 1 );
@@ -66,6 +68,14 @@ void configure() {
 
     gpio_set_input(button); // configure button
 }
+
+void button_to_start() {
+    while (1) {
+        display_four_digits( digits[16], digits[16], digits[16], digits[16] );
+    	if (gpio_read(button) == 0) return;
+    }
+}
+
 
 void display_single_digit( unsigned char digit_display, unsigned char digit_num ) {
     unsigned char LSB;
