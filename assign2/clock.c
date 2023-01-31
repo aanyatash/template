@@ -130,7 +130,7 @@ void start(unsigned int time_to_start) {
 		for (int j = cur_time[1]; j < 10; j++) {  // controls digit 2 to max at 9
 			for (int k = cur_time[2]; k < 6; k++) {  // controls digit 3 to max at 6 as seconds timer can't exceed 60
 				for (int l = cur_time[3]; l < 10; l++) {  // controls digit 4 to max at 9
-					time_start =  timer_get_ticks(); // uses Pi's system timer to count time
+					time_start = timer_get_ticks(); // uses Pi's system timer to count time
 					while ((timer_get_ticks() - time_start) < 1000*1000) {
 						// Only changes displayed digit when timer counts 1 second
 						display_four_digits(digits[i], digits[j], digits[k], digits[l]);
@@ -193,7 +193,7 @@ void set() {
         unsigned int time_to_start;
 	while (1) {
 
-        display_four_digits(digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]],digits[cur_time[3]]); // use cur time index
+        display_four_digits(digits[cur_time[0]], digits[cur_time[1]], digits[cur_time[2]], digits[cur_time[3]]); // use cur time index
 	time_to_start = cur_time[0]*1000 + cur_time[1]*100 + cur_time[2]*10 + cur_time[3];
 	if ( gpio_read(button[1]) == 0 ) { // SECONDS button
 	    if (cur_time[0] == 9 && cur_time[1] == 9 && cur_time[2] == 5 && cur_time[3] == 9) {
@@ -238,6 +238,8 @@ void set() {
 
         if ( gpio_read(button[0]) == 0 ) { // MINUTES button
 	    if (long_button_press()) {
+		display_four_digits( digits[1], digits[1], digits[1], digits[1] );
+		timer_delay(10);
 		time_to_start = cur_time[0]*1000 + cur_time[1]*100 + cur_time[2]*10 + cur_time[3];
 	    	start(time_to_start);
 	 	continue;

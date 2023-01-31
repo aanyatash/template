@@ -181,7 +181,8 @@ void test_timer(void) {
 
 }
 
-
+/* This function tests the clock set up on a breadboard and 
+ */
 void test_breadboard(void) {
     unsigned int segment[8] = {GPIO_PIN26,  GPIO_PIN19, GPIO_PIN13, GPIO_PIN6,
                                GPIO_PIN5, GPIO_PIN11, GPIO_PIN9, GPIO_PIN10};
