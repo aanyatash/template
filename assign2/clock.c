@@ -2,7 +2,9 @@
  * Filename: clock.c
  * CS 107E Assignment 2 Extension
  * This program allows time to be set on a clock by clicking two buttons and 
- * starts the clock by holding a button down. The clock counts up until 99:59.
+ * starts the clock by holding the left button down. 
+ * The clock resets to 0000 in set mode by holding the right button down. 
+ * The clock counts up until 99:59.
  */
 
 #include "gpio.h"
@@ -126,8 +128,9 @@ void debouncing(unsigned int digit1_id, unsigned int digit2_id, unsigned int dig
     }
 }
 
-/* This function allows a long button to be detected. The function takes 4 arguments that are unsigned 
- * integers which describe the current time, allowing current time to be displayed while in this function.
+/* This function allows a long button to be detected. The function takes 5 arguments that are unsigned 
+ * integers. The first 4  describe the current time, allowing current time to be displayed while in this function.
+ * The fifth parameter is which button to check long press for.
  * This function returns an unsigned integer 1 or 0 which describes true or false, in terms of whether
  * it was a long button press or not.
  */
@@ -154,7 +157,7 @@ unsigned int long_button_press(unsigned int digit1_id, unsigned int digit2_id, u
  */
 void start(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id, unsigned int digit4_id ) {
     unsigned int time_start;
-    while (gpio_read(button[0]) == 0) { /* spin */ }
+    while (gpio_read(button[0]) == 0) { /* spin */ } // Accounts for very long button holding
     while (1) {
 	    for (int i = digit1_id; i < 10; i++) {   // controls digit 1 to max at 9
 		for (int j = digit2_id; j < 10; j++) {  // controls digit 2 to max at 9
@@ -164,19 +167,19 @@ void start(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_i
 					while ((timer_get_ticks() - time_start) < 1000*1000) {
 						// Only changes displayed digit when timer counts 1 second
 						display_four_digits(digits[i], digits[j], digits[k], digits[l]);
-						// Avoids checking button press until at least one second in to clock
+						// Returns to set mode is left button pressed
 						if (gpio_read(button[0]) == 0) {
 							set(i, j, k, l);
 						}
 					}
 				}
-				digit4_id = 0;
+				digit4_id = 0; // Resets to starting value of 0
 			}
 			digit3_id = 0;
 		}
 		digit2_id = 0;
 	   }
-	   digit4_id = 0;
+	   digit1_id = 0;
     }
 }
 
@@ -216,7 +219,7 @@ void set(unsigned int digit1_id, unsigned int digit2_id, unsigned int digit3_id,
 	if ( gpio_read(button[1]) == 0 ) { // If SECONDS button pressed
 	    // SECONDS button also reset to 0000 if pressed long enough
 	    if (long_button_press(cur_time[0], cur_time[1], cur_time[2], cur_time[3], 1)) { 
-	        while (gpio_read(button[1]) == 0) { /* spin */ }
+	        while (gpio_read(button[1]) == 0) { /* spin */ } // Accounts for very long button holding
 		cur_time[0] = 0;
 		cur_time[1] = 0;
 		cur_time[2] = 0;
