@@ -30,7 +30,11 @@ size_t strlen(const char *str)
 
 int strcmp(const char *s1, const char *s2)
 {
-    /* TODO: Your code here */
+    // iterate through s1 length
+	// compare every value
+	// if reach end of one but not other 
+	// once hit first non matching value, break
+	// compare ascii values
     return 0;
 }
 
