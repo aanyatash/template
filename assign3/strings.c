@@ -48,6 +48,37 @@ int strcmp(const char *s1, const char *s2)
     return (s1[i] - s2[i]); // statement for if one or more nullptrs reached
 }
 
+//size_t strlcat(char *dst, const char *src, size_t dstsize)
+//{
+//    if (strlen(dst) > dstsize) {
+//		return dstsize + strlen(src);
+//	}
+//	char *end = dst;
+//	while (*end) {
+//		end++;
+//	}
+//	size_t remaining = dstsize - strlen(dst) - 1;
+//	// if more than 0 add whole thing and nullptr
+//	// if less than 0, add strlen - abs
+//	if (remaining < strlen(src)) {
+//		//int remaining_concat = remaiining < 0 ? -remaining : remaining;
+//		end[remaining] = 0;
+//		while (remaining--) {
+//		    end[remaining] = src[remaining];
+//		}
+//
+//	}
+//    if (remaining >= strlen(src)) {
+//		int i = 0;
+//		while (src[i]) {
+//		    end[i] = src[i];
+//			i++;
+//		}
+//		end[i] = 0;
+//	}
+//	return strlen(dst);
+//}
+
 size_t strlcat(char *dst, const char *src, size_t dstsize)
 {
     if (strlen(dst) > dstsize) {
@@ -61,23 +92,16 @@ size_t strlcat(char *dst, const char *src, size_t dstsize)
 	// if more than 0 add whole thing and nullptr
 	// if less than 0, add strlen - abs
 	if (remaining < strlen(src)) {
-		//int remaining_concat = remaining < 0 ? -remaining : remaining;
+		memcpy(end, src, remaining);
 		end[remaining] = 0;
-		while (remaining--) {
-		    end[remaining] = src[remaining];
-		}
-
 	}
-    if (remaining >= strlen(src)) {
-		int i = 0;
-		while (src[i]) {
-		    end[i] = src[i];
-			i++;
+    else if (remaining >= strlen(src)) {
+		memcpy(end, src, remaining);
 		}
-		end[i] = 0;
-	}
 	return strlen(dst);
 }
+
+
 
 unsigned int strtonum(const char *str, const char **endptr)
 {
