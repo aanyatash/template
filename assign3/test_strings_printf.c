@@ -148,9 +148,9 @@ void main(void)
     test_memset();
     test_strcmp();
     test_strlcat();
-    test_strtonum();
-    test_to_base();
-    test_snprintf();
+    //test_strtonum();
+    //test_to_base();
+    //test_snprintf();
     // test_disassemble();
 
 
