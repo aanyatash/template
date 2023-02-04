@@ -168,11 +168,27 @@ static void test_to_base(void)
     char buf[5];
     size_t bufsize = sizeof(buf);
 
+    // Test base 10, normal
     memset(buf, 0x77, bufsize); // init contents with known value
+    int n = unsigned_to_base(buf, bufsize, 35, 10, 0);
+	assert(strcmp(buf, "35") == 0);
+	assert(n == 2);
 
-    int n = signed_to_base(buf, bufsize, -9999, 10, 6);
-    assert(strcmp(buf, "-099") == 0)
-    assert(n == 6);
+    // Test for base 10 but need padding
+    buf[0] = '\0';
+	n = unsigned_to_base(buf, bufsize, 35, 10, 3);
+	assert(strcmp(buf, "035") == 0);
+	assert(n == 3);
+
+    // Test base 10, but truncation needed
+	buf[0] = '\0';
+	n = unsigned_to_base(buf, bufsize, 12345, 10, 3);
+	assert(strcmp(buf, "1234") == 0);
+	assert(n == 5);
+
+    //int n = signed_to_base(buf, bufsize, -9999, 10, 6);
+    //assert(strcmp(buf, "-099") == 0)
+    //assert(n == 6);
 }
 
 static void test_snprintf(void)
@@ -256,7 +272,7 @@ void main(void)
     test_strcmp();
     test_strlcat();
     test_strtonum();
-    //test_to_base();
+    test_to_base();
     //test_snprintf();
     // test_disassemble();
 

@@ -29,7 +29,7 @@ unsigned int int_length (unsigned int val) {
 	if (val == 0) {
 		length = 1;
 	}
-	tmp = val;
+	unsigned int tmp = val;
 	while (tmp) {
 		length++;
 		tmp = tmp / 10;
@@ -46,37 +46,35 @@ int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size
 	unsigned int length = int_length(val);
 	// Leaves enough space for nullptr
 	unsigned int max_length = min_width;
-	char *str;
 	if (length >  max_length) {
 		max_length = length;
 	}
+	char str[length + 1];
 	char max[max_length + 1];
     memset(max, '\0', sizeof(max));
     unsigned int padding = 0;
 	if (base == 10) {
 		//convert integer to string
 		str[length] = '\0';
-		int digit = 1;
-		int add_char = 0;
+		//int digit = 1;
+		int add_char = val;
 		for (int i = length - 1; i >=0; i--) {
-		    if (i != length - 1) {
-				for (int j = 0; j < digit; j++) {
-			        add_char /= 10;
-		        }
-		        digit++;
-			    str[i] = add_char + 48;
-			}
-			else {
-				str[i] = (val % 10) + 48;
-			}
+			    str[i] = (add_char % 10) + 48;
+				add_char /= 10;
 		}
     }
-    if (length < min_width) {
+
+	if (base == 16) {
+		
+	}
+
+    // pad with zeros
+	if (length < min_width) {
 		padding = min_width - length;
     }
     // adding number to end of max buffer
-    for (int i = length; i >= 0; i--) {
-		max[max_length - i] = str[i];
+    for (int i = 0; i < length + 1; i++) {
+		max[max_length - i] = str[length - i];
     } 
 	if (padding > 0) {
 		for (int i = 0; i < padding; i++) {
@@ -85,12 +83,11 @@ int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size
 	}
 
 	// move max to buf, think about truncation
-    memset(buf, '\0', sizeof(buf));
-    strlcat(buf, max, sizeof(buf));
-	// if result < min width pad with zeros
-
-	// if bufsize <= min width
-	// return min width
+    buf[0] = '\0';
+    strlcat(buf, max, bufsize);
+	if (bufsize < max_length + 1) {
+	    return max_length;
+	}
     return strlen(buf);
 }
 
