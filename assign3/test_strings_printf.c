@@ -23,6 +23,10 @@ static void test_strcmp(void)
     assert(strcmp("apple", "apple") == 0);
     assert(strcmp("apple", "applesauce") < 0);
     assert(strcmp("pears", "apples") > 0);
+	assert(strcmp("","") == 0);
+	assert(strcmp("apples", "") > 0);
+	assert(strcmp("", "pears") < 0);
+	assert(strcmp("good", "goof") < 0);
 }
 
 static void test_strlcat(void)
@@ -40,6 +44,62 @@ static void test_strlcat(void)
     strlcat(buf, "107e", bufsize); // append 107e
     assert(strlen(buf) == 6);
     assert(strcmp(buf, "CS107e") == 0);
+	
+	// TEST 2 - size of final string exactly right
+    char new[6];
+	size_t newsize = sizeof(new);
+
+	memset(new, 0x70, newsize);
+
+	new[0] = 'h';
+	new[1] = 'i';
+	new[2] = '\0';
+    assert(strlen(new) == 2);
+	strlcat(new, "you", newsize);
+	assert(strlen(new) == 5);
+	assert(strcmp(new, "hiyou") == 0);
+
+
+    // TEST 3 - concatenated final string
+	char concat[6];
+    size_t concatsize = sizeof(concat);
+
+	memset(concat, 0x70, concatsize);
+
+	concat[0] = 'h';
+	concat[1] = 'i';
+	concat[2] = '\0';
+	assert(strlen(concat) == 2);
+	strlcat(concat, "there", concatsize);
+	assert(strlen(concat) == 5);
+	assert(strcmp(concat, "hithe") == 0);
+	assert(concat[5] == '\0');
+
+    // TEST 4 - dst not proper string/dst size is wrong
+	strlcat(concat, "", 3);
+	assert(strlen(concat) == 5);
+	assert(concat[5] == '\0');
+
+    // TEST 5 - src is empty, dst size is correct
+	strlcat(concat, "", concatsize);
+	assert(strlen(concat) == 5);
+	assert(concat[5] == '\0');
+
+	// TEST 6 - no space in dst
+	strlcat(concat, "m", concatsize);
+	assert(strlen(concat) == 5);
+	assert(concat[5] == '\0');
+
+	// TEST 7 - add two null ptrs
+	char nullptr[3];
+	size_t nullptrsize = sizeof(nullptr);
+
+	memset(nullptr, '\0', nullptrsize);
+
+	assert(strlen(nullptr) == 0);
+	strlcat(nullptr, '\0', nullptrsize);
+	assert(strlen(nullptr) == 0);
+	assert(strcmp(nullptr, '\0') == 0);
 }
 
 static void test_strtonum(void)
@@ -148,7 +208,7 @@ void main(void)
     test_memset();
     test_strcmp();
     test_strlcat();
-    //test_strtonum();
+    test_strtonum();
     //test_to_base();
     //test_snprintf();
     // test_disassemble();
