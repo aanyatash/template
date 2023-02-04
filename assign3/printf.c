@@ -18,17 +18,85 @@ int signed_to_base(char *buf,
                    int base, 
                    size_t min_width);
 
-
+static unsigned int int_length (unsigned int val);
 #define MAX_OUTPUT_LEN 1024
+
+
+// Find length helper function
+unsigned int int_length (unsigned int val) {
+
+    unsigned int length = 0;
+	if (val == 0) {
+		length = 1;
+	}
+	tmp = val;
+	while (tmp) {
+		length++;
+		tmp = tmp / 10;
+	}
+	return length;
+
+}
 
 int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size_t min_width)
 {
-    /* TODO: Your code here */
-    return 0;
+    if (base != 10 && base != 16) {
+		return 0;
+	}
+	unsigned int length = int_length(val);
+	// Leaves enough space for nullptr
+	unsigned int max_length = min_width;
+	char *str;
+	if (length >  max_length) {
+		max_length = length;
+	}
+	char max[max_length + 1];
+    memset(max, '\0', sizeof(max));
+    unsigned int padding = 0;
+	if (base == 10) {
+		//convert integer to string
+		str[length] = '\0';
+		int digit = 1;
+		int add_char = 0;
+		for (int i = length - 1; i >=0; i--) {
+		    if (i != length - 1) {
+				for (int j = 0; j < digit; j++) {
+			        add_char /= 10;
+		        }
+		        digit++;
+			    str[i] = add_char + 48;
+			}
+			else {
+				str[i] = (val % 10) + 48;
+			}
+		}
+    }
+    if (length < min_width) {
+		padding = min_width - length;
+    }
+    // adding number to end of max buffer
+    for (int i = length; i >= 0; i--) {
+		max[max_length - i] = str[i];
+    } 
+	if (padding > 0) {
+		for (int i = 0; i < padding; i++) {
+		    max[i] = 48;
+		}
+	}
+
+	// move max to buf, think about truncation
+    memset(buf, '\0', sizeof(buf));
+    strlcat(buf, max, sizeof(buf));
+	// if result < min width pad with zeros
+
+	// if bufsize <= min width
+	// return min width
+    return strlen(buf);
 }
 
 int signed_to_base(char *buf, size_t bufsize, int val, int base, size_t min_width)
 {
+// buf + 1 and also min_width - 1 for minus sign, val*-1
     /* TODO: Your code here */
     return 0;
 }
