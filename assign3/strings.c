@@ -77,21 +77,26 @@ unsigned int strtonum(const char *str, const char **endptr)
 {
     // ACCOUNT FOR STR BEING JUST NULLPTR OR EMPTY
 	if (*str == '\0') {
+		if (**endptr != '\0') {
+		    *endptr = &str[0];
+		}
 		return 0;
 	}
 	int length = 0;
 	char buf[strlen(str)];
+	memset(buf, '\0', sizeof(buf));
 	memcpy(buf, str, sizeof(buf));
 	char *end = buf;
 	int result = 0;
 	int is_hex = 0;
-	if (strlen(str) > 2) {
+	if (strlen(str) >= 2) {
 		// Only for hex numbers
 		if (str[0] == '0' && str[1] == 'x') {
 				is_hex = 1;
+				length = 2;
 				end += 2;
-				while (*end || (48 <= *end && *end <= 57) || (97 <= *end && *end <= 102) 
-				|| (65 <= *end && *end <= 70)) { 
+				while (*end && ((48 <= *end && *end <= 57) || (97 <= *end && *end <= 102) 
+				|| (65 <= *end && *end <= 70))) { 
 					end++;
 					length++;
 				}

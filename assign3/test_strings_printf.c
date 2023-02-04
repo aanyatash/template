@@ -114,6 +114,53 @@ static void test_strtonum(void)
     assert(val == 107);
     // rest was modified to point to first non-digit character
     assert(rest == &input[3]);
+
+    // Invalid input 
+    const char *wordptr = NULL;
+	const char *word = "joker";
+	val = strtonum(word, &wordptr);
+	assert(val == 0);
+	assert(word == &word[0]);
+
+
+	// Empty string
+    const char *emptyptr = NULL;
+	const char *empty = "";
+	val = strtonum(empty, &emptyptr);
+	assert(val == 0);
+	assert(emptyptr == &empty[0]);
+
+	// No hex value
+	const char *endptr = NULL;
+	const char *no_hex = "0x";
+	val = strtonum(no_hex, &endptr);
+	assert(val == 0);
+    assert(endptr == &no_hex[2]);
+ 
+	// Invalid hex value
+	const char *end = NULL;
+	const char *invalid_hex = "0xi";
+	val = strtonum(invalid_hex, &end);
+	assert(val == 0);
+	assert(end == &invalid_hex[2]);
+
+	// Valid hex value
+
+	// One letter invalid
+	const char *one = NULL;
+	const char *one_letter = "s";
+	val = strtonum(one_letter, &one);
+	assert(val == 0);
+	assert(one == &one_letter[0]);
+
+	// 0 in decimal
+    const char *zero = NULL;
+	const char *one_digit = "0";
+	val = strtonum(one_digit, &zero);
+	assert(val == 0);
+	assert(zero == &one_digit[1]);
+
+
 }
 
 static void test_to_base(void)
