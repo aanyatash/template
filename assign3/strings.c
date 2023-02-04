@@ -79,6 +79,7 @@ unsigned int strtonum(const char *str, const char **endptr)
 	if (*str == '\0') {
 		return 0;
 	}
+	int length = 0;
 	char buf[strlen(str)];
 	memcpy(buf, str, sizeof(buf));
 	char *end = buf;
@@ -92,6 +93,7 @@ unsigned int strtonum(const char *str, const char **endptr)
 				while (*end || (48 <= *end && *end <= 57) || (97 <= *end && *end <= 102) 
 				|| (65 <= *end && *end <= 70)) { 
 					end++;
+					length++;
 				}
 				char *hex = end - 1;
 				int i = 0;
@@ -118,6 +120,7 @@ unsigned int strtonum(const char *str, const char **endptr)
 	if (is_hex == 0) {
 		while (*end && (48 <= *end && *end <= 57)) {
 		    end++;
+			length++;
 		} 
 		char *dec = end - 1;
 		int i = 0;
@@ -138,7 +141,7 @@ unsigned int strtonum(const char *str, const char **endptr)
 	}
 	// do same for decimal numbers
 	if (**endptr != '\0') {
-		*endptr = end;	
+		*endptr = &str[length];	
 	}
 	return result;
 }
