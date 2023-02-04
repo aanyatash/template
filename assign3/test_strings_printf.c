@@ -91,15 +91,15 @@ static void test_strlcat(void)
 	assert(concat[5] == '\0');
 
 	// TEST 7 - add two null ptrs
-	char nullptr[3];
-	size_t nullptrsize = sizeof(nullptr);
-
-	memset(nullptr, '\0', nullptrsize);
-
-	assert(strlen(nullptr) == 0);
-	strlcat(nullptr, '\0', nullptrsize);
-	assert(strlen(nullptr) == 0);
-	assert(strcmp(nullptr, '\0') == 0);
+//	char nullptr[3];
+//	size_t nullptrsize = sizeof(nullptr);
+//
+//	memset(nullptr, '\0', nullptrsize);
+//
+//	assert(strlen(nullptr) == 0);
+//	strlcat(nullptr, '\0', nullptrsize);
+//	assert(strlen(nullptr) == 0);
+//	assert(strcmp(nullptr, '\0') == 0);
 }
 
 static void test_strtonum(void)

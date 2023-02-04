@@ -116,7 +116,7 @@ unsigned int strtonum(const char *str, const char **endptr)
 		}
 	}
 	if (is_hex == 0) {
-		while (*end || (48 <= *end && *end <= 57)) {
+		while (*end && (48 <= *end && *end <= 57)) {
 		    end++;
 		} 
 		char *dec = end - 1;
