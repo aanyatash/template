@@ -54,7 +54,7 @@ void num_to_base_str(char *str, unsigned int val, int base) {
 		    temp[i] = digit + 48;
 		}
 		else {
-		    temp[i] = digit + 55;
+		    temp[i] = digit + 87;
 		}
 		i++;
 		add_char /= base;
@@ -141,8 +141,90 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 
 int snprintf(char *buf, size_t bufsize, const char *format, ...)
 {
-    /* TODO: Your code here */
-    return 0;
+    int i = 0;
+	int format_i = 0;
+	char max[1024];
+	size_t maxsize = sizeof(max);
+	memset(max, '\0', maxsize);
+	va_list ap;
+	va_start(ap, format);
+	while (format[format_i]) {
+	    if (format[format_i] == '%') {
+		// include error checking for i + 1
+		    if (format[format_i + 1] == 'c') {
+				max[i] = va_arg(ap, int);
+				format_i += 2;
+				i += 1;
+			}
+			else if (format[format_i + 1] == '%') {
+				max[i] = '%';
+				format_i += 2;
+				i += 1;
+			}
+			else if (format[format_i + 1] == 's') {
+			    max[i] = '\0';
+				char *str = va_arg(ap, char*);
+				strlcat(max, str, maxsize);
+				i = strlen(max);
+				format_i += 2;
+			}
+			else if (format[format_i + 1] == '0') {
+			    const char* letter = NULL;
+				unsigned int min_width = strtonum(format + format_i + 1, &letter);
+				if (*letter == 'd') {
+					max[i] = '\0';
+				    int val = va_arg(ap, int);
+				    signed_to_base(max + i, maxsize - i, val, 10, min_width);
+				    i = strlen(max);
+				    format_i += int_length(min_width) + 3;
+				}
+			    else if (*letter == 'x') {
+				    max[i] = '\0';
+				    int val = va_arg(ap, int);
+				    signed_to_base(max + i, maxsize - i, val, 16, min_width);
+				    i = strlen(max);
+				    format_i += int_length(min_width) + 3;
+			    }
+			}
+			else if (format[format_i + 1] == 'd') {
+				max[i] = '\0';
+				int val = va_arg(ap, int);
+				signed_to_base(max + i, maxsize - i, val, 10, 0);
+				i = strlen(max);
+				format_i += 2;
+			}
+			else if (format[format_i + 1] == 'x') {
+				max[i] = '\0';
+				int val = va_arg(ap, int);
+				signed_to_base(max + i, maxsize - i, val, 16, 0);
+				i = strlen(max);
+				format_i += 2;
+			}
+			else if (format[format_i + 1] == 'p') {
+				char* address = va_arg(ap, char*);
+				// start at format_i + 3
+				// signed to base
+				// add 0 
+				// add x
+				max[i] = '0';
+				max[i+1] = 'x';
+				int val = &address;
+				signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 0);
+				i = strlen(max);
+				format_i += 2;
+			}
+		}
+		else {
+		    max[i] = format[format_i];
+		    i++;
+		    format_i++;
+		}
+	}
+	va_end(ap);
+	max[i] = '\0';
+	buf[0] = '\0';
+	strlcat(buf, max, bufsize);
+    return strlen(buf);
 }
 
 int printf(const char *format, ...)
