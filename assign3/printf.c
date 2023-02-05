@@ -18,7 +18,9 @@ int signed_to_base(char *buf,
                    int base, 
                    size_t min_width);
 
-static unsigned int int_length (unsigned int val);
+static unsigned int int_length(unsigned int val);
+static void num_to_base_str(char *str, unsigned int val, int base);
+
 #define MAX_OUTPUT_LEN 1024
 
 
@@ -38,35 +40,62 @@ unsigned int int_length (unsigned int val) {
 
 }
 
+void num_to_base_str(char *str, unsigned int val, int base) {
+
+    unsigned int length = int_length(val);
+	char temp[length + 1];
+	memset(temp, '\0', sizeof(temp));
+	int add_char = val;
+	int i = 0;
+	int digit = 0;
+	while (add_char != 0) {
+	    digit = add_char % base;
+		if (digit < 10) {
+		    temp[i] = digit + 48;
+		}
+		else {
+		    temp[i] = digit + 55;
+		}
+		i++;
+		add_char /= base;
+		}
+    temp[i] = '\0';
+	int reverse = strlen(temp) - 1;
+	i = 0;
+    while (reverse >= 0) {
+		str[i] = temp[reverse];
+		reverse--;
+		i++;
+	}
+	str[i] = '\0';
+
+}
+
 int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size_t min_width)
 {
     if (base != 10 && base != 16) {
 		return 0;
 	}
+	if (bufsize == 0) {
+		return 0;
+	}
 	unsigned int length = int_length(val);
-	// Leaves enough space for nullptr
+
+    char str[length + 1];
+	memset(str, '\0', sizeof(str));
+
+    unsigned int padding = 0;
+
+    num_to_base_str(str, val, base);
+
+    // Leaves enough space for nullptr
+	length = strlen(str);
 	unsigned int max_length = min_width;
 	if (length >  max_length) {
 		max_length = length;
 	}
-	char str[length + 1];
 	char max[max_length + 1];
     memset(max, '\0', sizeof(max));
-    unsigned int padding = 0;
-	if (base == 10) {
-		//convert integer to string
-		str[length] = '\0';
-		//int digit = 1;
-		int add_char = val;
-		for (int i = length - 1; i >=0; i--) {
-			    str[i] = (add_char % 10) + 48;
-				add_char /= 10;
-		}
-    }
-
-	if (base == 16) {
-		
-	}
 
     // pad with zeros
 	if (length < min_width) {

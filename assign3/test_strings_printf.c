@@ -145,7 +145,12 @@ static void test_strtonum(void)
 	assert(end == &invalid_hex[2]);
 
 	// Valid hex value
-
+	const char *hex_end = NULL;
+	const char *valid_hex = "0x7E";
+	val = strtonum(valid_hex, &hex_end);
+	assert(val == 126);
+	assert(hex_end == &valid_hex[4]);
+ 
 	// One letter invalid
 	const char *one = NULL;
 	const char *one_letter = "s";
@@ -186,6 +191,44 @@ static void test_to_base(void)
 	assert(strcmp(buf, "1234") == 0);
 	assert(n == 5);
 
+
+    // Test base 16, normal
+    buf[0] = '\0';
+	n = unsigned_to_base(buf, bufsize, 126, 16, 0);
+	assert(strcmp(buf, "7E") == 0);
+	assert(n == 2);
+	
+
+	// Test base 16, need padding
+	buf[0] = '\0';
+	n = unsigned_to_base(buf, bufsize, 126, 16, 4);
+	assert(strcmp(buf, "007E") == 0);
+	assert(n == 4);
+
+	// Test base 16, truncation and padding needed
+	buf[0] = '\0';
+	n = unsigned_to_base(buf, bufsize, 126, 16, 6);
+	assert(strcmp(buf, "0000") == 0);
+	assert(n == 6);
+
+	// Test base 16, truncation needed
+	char new[2];
+	size_t  newsize = sizeof(new);
+	n = unsigned_to_base(new, newsize, 126, 16, 0);
+	assert(strcmp(new, "7") == 0);
+	assert(n == 2);
+
+	// Invalid base
+	buf[0] = '\0';
+    n = unsigned_to_base(buf, bufsize, 126, 8, 0);
+	assert(n == 0);
+
+    // buffer size of 0
+    n = unsigned_to_base(buf, 0, 126, 10, 0);
+	assert(n == 0);
+
+    // DO WE WANT TO CHECK LENGTH OF BUFFER TO ENSURE CORRECT NULL TERMINATION
+    // what if the number is more than a byte - why is max 1024???
     //int n = signed_to_base(buf, bufsize, -9999, 10, 6);
     //assert(strcmp(buf, "-099") == 0)
     //assert(n == 6);
