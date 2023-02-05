@@ -201,14 +201,9 @@ int snprintf(char *buf, size_t bufsize, const char *format, ...)
 				format_i += 2;
 			}
 			else if (format[format_i + 1] == 'p') {
-				char* address = va_arg(ap, char*);
-				// start at format_i + 3
-				// signed to base
-				// add 0 
-				// add x
+				int val = va_arg(ap, int);
 				max[i] = '0';
 				max[i+1] = 'x';
-				int val = &address;
 				signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 0);
 				i = strlen(max);
 				format_i += 2;
