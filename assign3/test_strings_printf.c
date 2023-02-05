@@ -229,9 +229,17 @@ static void test_to_base(void)
 
     // DO WE WANT TO CHECK LENGTH OF BUFFER TO ENSURE CORRECT NULL TERMINATION
     // what if the number is more than a byte - why is max 1024???
-    //int n = signed_to_base(buf, bufsize, -9999, 10, 6);
-    //assert(strcmp(buf, "-099") == 0)
-    //assert(n == 6);
+    
+    // buffer size of 1
+	buf[0] = '\0';
+	n = unsigned_to_base(buf, 1, 126, 10, 0);
+	assert(n == 3);
+	assert(strcmp(buf, "") == 0);
+
+	buf[0] = '\0';
+	n = signed_to_base(buf, bufsize, -9999, 10, 6);
+    assert(strcmp(buf, "-099") == 0)
+    assert(n == 6);
 }
 
 static void test_snprintf(void)

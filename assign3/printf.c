@@ -122,9 +122,15 @@ int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size
 
 int signed_to_base(char *buf, size_t bufsize, int val, int base, size_t min_width)
 {
-// buf + 1 and also min_width - 1 for minus sign, val*-1
-    /* TODO: Your code here */
-    return 0;
+    if (bufsize == 0) {
+		return 0;
+	}
+	if (val < 0) {
+	    char *buf_positive = buf + 1;
+		buf[0] = '-';
+		return 1 + unsigned_to_base(buf_positive, bufsize - 1, val*-1, base, min_width - 1);
+	}
+	return unsigned_to_base(buf, bufsize, val, base, min_width);
 }
 
 int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
