@@ -1,20 +1,41 @@
+/* Name: Aanya Tashfeen
+ * Filename: strings.c
+ * This file contains the code for a strings library. The functions in this
+ * file can create a copy of a string, set an array to an arbitrary repeating
+ * value, find the length of a string, compare to strings, and concatenate two
+ * strings together.
+ */
+
 #include "strings.h"
 
+/* This function copies contents from src to dst one byte
+ * at a time. It takes three parameters: dst is a pointer array
+ * to be filled, src is a pointer array to be copied, and n is an
+ * unsigned size_t integer which specifies the number of bytes to
+ * be copied.
+ */
 void *memcpy(void *dst, const void *src, size_t n)
 {
-    /* Copy contents from src to dst one byte at a time */
     char *d = dst;
     const char *s = src;
+
+	// Copies contents for n bytes
     while (n--) {
         *d++ = *s++;
     }
     return dst;
 }
 
+/* This function copies 'n' bytes of data from the memory
+ * area 'src' to the memory area 'dst'. 
+ */
 void *memset(void *dst, int val, size_t n)
 {
    char least_byte = val; // least significant byte of val
    char *d = dst;
+
+   // Copies least significant byte of val for n bytes of 
+   // the destination array
    while (n--) {
 		d[n] = least_byte;
    }		

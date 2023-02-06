@@ -1,3 +1,7 @@
+/* Name: Aanya Tashfeen
+ * Filename: printf.c
+ * This file contains the code for a printf module.
+ */
 #include "printf.h"
 #include <stdarg.h>
 #include <stdint.h>
@@ -24,14 +28,24 @@ static void num_to_base_str(char *str, unsigned int val, int base);
 #define MAX_OUTPUT_LEN 1024
 
 
-// Find length helper function
+/* This helper function for unsigned_to_base finds the  number of digits in a 
+ * number (length) and returns this number as an unsigned
+ * integer. The function has one parameter which is an
+ * unisgned integer called val which is the number we are
+ * trying to determine the length of.
+ */
 unsigned int int_length (unsigned int val) {
 
     unsigned int length = 0;
+
+	// Accounts for 0 case
 	if (val == 0) {
 		length = 1;
 	}
+
 	unsigned int tmp = val;
+	// Keeps deividing by 10 until the answer is 0
+	// Which gives the number of digits in a number
 	while (tmp) {
 		length++;
 		tmp = tmp / 10;
@@ -40,6 +54,13 @@ unsigned int int_length (unsigned int val) {
 
 }
 
+/* This helper function for unsigned_to_base converts an integer into a string of numbers
+ * in a specified base. In this case, the base should be either 10
+ * or 16. The function has three parameters: a char* which is a pointer
+ * to a string of characters that will store the result, and unsigned
+ * integer which is the value to be converted, and an integer which is the
+ * base to convert to.
+ */
 void num_to_base_str(char *str, unsigned int val, int base) {
 
     unsigned int length = int_length(val);
@@ -71,6 +92,15 @@ void num_to_base_str(char *str, unsigned int val, int base) {
 
 }
 
+/* The function unsigned_to_base converts an unsigned integer to a string of numbers in a
+ * specified base with a specified minimum width, adding zeros to ensure this is reached. 
+ * The function returns an integer which is the count of characters added to the
+ * string or the count of characters that should've been added to the string if the buf 
+ * size wasn't too small. If the bufsize is too small, the string of characters is truncated.
+ * The function takes 5 parameters: a char* array of pointers to store the string of numbers, the
+ * size of this array, an unsigned integer value to be conevrted, the integer base of conversion, 
+ * and the minimum size the final string of numbers must be.
+ */
 int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size_t min_width)
 {
     if (base != 10 && base != 16) {
@@ -120,6 +150,14 @@ int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size
     return strlen(buf);
 }
 
+
+/* This function is the exact same as unsigned to base, except it converts
+ * a signed integer to a string of numbers in a specific base. If the number is
+ * negative, the first character in the string is always a minus sign. This function
+ * similarly returns an integer which is the count of characters added to the
+ * string or the count of characters that should've been added to the string if the buf 
+ * size wasn't too small.
+ */
 int signed_to_base(char *buf, size_t bufsize, int val, int base, size_t min_width)
 {
     if (bufsize == 0) {
@@ -139,6 +177,8 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
     return 0;
 }
 
+/* This function
+ */
 int snprintf(char *buf, size_t bufsize, const char *format, ...)
 {
     int i = 0;
@@ -201,7 +241,7 @@ int snprintf(char *buf, size_t bufsize, const char *format, ...)
 				format_i += 2;
 			}
 			else if (format[format_i + 1] == 'p') {
-				int val = va_arg(ap, int);
+				unsigned int val = va_arg(ap, unsigned int);
 				max[i] = '0';
 				max[i+1] = 'x';
 				signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 0);
