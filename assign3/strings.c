@@ -27,7 +27,10 @@ void *memcpy(void *dst, const void *src, size_t n)
 }
 
 /* This function copies 'n' bytes of data from the memory
- * area 'src' to the memory area 'dst'. 
+ * area 'src' to the memory area 'dst'. This function takes
+ * three parameters: dst is a pointer array to be filled, val is an
+ * integer value, and n is an undigned size_t integer that specifies
+ * the number of bytes in memory that should be filled with val.
  */
 void *memset(void *dst, int val, size_t n)
 {
@@ -42,25 +45,38 @@ void *memset(void *dst, int val, size_t n)
    return dst;
 }
 
-
+/* This function calculates the length of a string and returns this
+ * as a size_t. It takes one paramater which is a char* string array
+ * that the length of is calculated by this function.
+ */
 size_t strlen(const char *str)
 {
-    /* Implementation a gift to you from lab3 */
     size_t n = 0;
+	// Increment counter until end of string reached
     while (str[n] != '\0') {
         n++;
     }
     return n;
 }
 
+/* This function lexicographically compares two null-terminated strings
+ * 's1' and 's2' which are parameters to the function. The function returns
+ * the ASCII value of the first differing character or 0 if at the end of both
+ * strings.
+ */
 int strcmp(const char *s1, const char *s2)
 {
     int i = 0;
-	char a = s1[0];  // initializes a and b
+
+	// Initializes a and b
+	char a = s1[0];
 	char b = s2[0];
-	while (s1[i] && s2[i]) { // while neither are nullptr
+
+	// While neither are nullptr
+	while (s1[i] && s2[i]) {
 		a = s1[i]; 
 		b = s2[i];
+		// if first differing character is reached
 		if (a - b > 0 || a - b < 0) {
 				return (a - b);
 		}
@@ -69,6 +85,13 @@ int strcmp(const char *s1, const char *s2)
     return (s1[i] - s2[i]); // statement for if one or more nullptrs reached
 }
 
+/* This function performs size-bounded string concatenation. The 
+ * function appends null-terminated string 'src' to the end of 'dst'
+ * and null terminates the resulting string in 'dst'. The amount of 'src' that
+ * is appended is determined by 'dstsize', a parameter that describes the 
+ * amount of memory allocated to 'dst'. The function returns the final size of
+ * dst if there were enough space to append all of src.
+ */
 size_t strlcat(char *dst, const char *src, size_t dstsize)
 {
     if (strlen(dst) > dstsize) {
@@ -78,6 +101,7 @@ size_t strlcat(char *dst, const char *src, size_t dstsize)
 	while (*end) {
 		end++;
 	}
+	size_t total = strlen(dst) + strlen(src);
 	size_t remaining = dstsize - strlen(dst) - 1;
 	// if more than 0 add whole thing and nullptr
 	// if less than 0, add strlen - abs
@@ -89,7 +113,7 @@ size_t strlcat(char *dst, const char *src, size_t dstsize)
 		memcpy(end, src, remaining);
 		end[remaining] = '\0';
     }
-	return strlen(dst);
+	return total;
 }
 
 
