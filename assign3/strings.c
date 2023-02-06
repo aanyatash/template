@@ -117,7 +117,8 @@ size_t strlcat(char *dst, const char *src, size_t dstsize)
 }
 
 
-
+/*
+ */
 unsigned int strtonum(const char *str, const char **endptr)
 {
     // ACCOUNT FOR STR BEING JUST NULLPTR OR EMPTY
