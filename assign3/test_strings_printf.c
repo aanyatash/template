@@ -256,11 +256,11 @@ static void test_snprintf(void)
     // Decimal
     snprintf(buf, bufsize, "%d", 45);
     assert(strcmp(buf, "45") == 0);
-//
-//    // Hexadecimal
+
+    // Hexadecimal
     snprintf(buf, bufsize, "%04x", 0xef);
     assert(strcmp(buf, "00ef") == 0);
-//
+
     // Pointer
     snprintf(buf, bufsize, "%p", (void *) 0x20200004);
     assert(strcmp(buf, "0x20200004") == 0);
@@ -269,19 +269,19 @@ static void test_snprintf(void)
 	buf[0] = '\0';
     snprintf(buf, bufsize, "%c", 'A');
     assert(strcmp(buf, "A") == 0);
-//
-//    // String
+
+    // String
     buf[0] = '\0';
     snprintf(buf, bufsize, "%s", "binky");
     assert(strcmp(buf, "binky") == 0);
-//
+
     // Format string with intermixed codes
     snprintf(buf, bufsize, "CS%d%c!", 107, 'e');
     assert(strcmp(buf, "CS107e!") == 0);
-//
-//    // Test return value
-//    assert(snprintf(buf, bufsize, "Hello") == 5);
-//    assert(snprintf(buf, 2, "Hello") == 5);
+
+    // Test return value
+    assert(snprintf(buf, bufsize, "Hello") == 5);
+    assert(snprintf(buf, 2, "Hello") == 5);
 }
 
 // This function just here as code to disassemble for extension

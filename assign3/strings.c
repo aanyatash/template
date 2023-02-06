@@ -94,71 +94,89 @@ int strcmp(const char *s1, const char *s2)
  */
 size_t strlcat(char *dst, const char *src, size_t dstsize)
 {
+    // dstsize not correct or dst not proper string
     if (strlen(dst) > dstsize) {
 		return dstsize + strlen(src);
 	}
 	char *end = dst;
+	// Identify end of dst (where null ptr is)
 	while (*end) {
 		end++;
 	}
-	size_t total = strlen(dst) + strlen(src);
-	size_t remaining = dstsize - strlen(dst) - 1;
-	// if more than 0 add whole thing and nullptr
-	// if less than 0, add strlen - abs
-	if (remaining < strlen(src)) {
-		memcpy(end, src, remaining);
-		end[remaining] = '\0';
-	}
-    else if (remaining >= strlen(src)) {
-		memcpy(end, src, remaining);
-		end[remaining] = '\0';
-    }
+	size_t total = strlen(dst) + strlen(src); // Size of what should be written to dst
+	size_t remaining = dstsize - strlen(dst) - 1; // remaining space in dst
+	// Only add the length of src that fits in the rest of dst
+	memcpy(end, src, remaining);
+	end[remaining] = '\0';
 	return total;
 }
 
 
-/*
+/* This function takes an input of a string that is either a hex 
+ * number beginning with "0x" or a decimal number and returns it
+ * in integer format. The function also takes a const double pointer
+ * to a char as a parameter and sets this to equal the end of the hex
+ * or decimal number in the input string if the **endptr is not set
+ * to NULL.
  */
 unsigned int strtonum(const char *str, const char **endptr)
 {
-    // ACCOUNT FOR STR BEING JUST NULLPTR OR EMPTY
+    // This accounts for the empty string
 	if (*str == '\0') {
+	    // Set endptr to nullptr on empty string
 		if (**endptr != '\0') {
 		    *endptr = &str[0];
 		}
 		return 0;
 	}
-	int length = 0;
+	int length = 0; // Keeps track of end length of valid hex/decimal number
+
+	// Creates a buffer to copy str into as str is a const char pointer
+	// Must iterate through copy of str instead
 	char buf[strlen(str)];
 	memset(buf, '\0', sizeof(buf));
 	memcpy(buf, str, sizeof(buf));
-	char *end = buf;
+
+	char *end = buf; // pointer to track end of hex/dec value in string
 	int result = 0;
-	int is_hex = 0;
-	if (strlen(str) >= 2) {
-		// Only for hex numbers
+	int is_hex = 0; // functions a bool value
+
+	if (strlen(str) >= 2) { // Can only be hex if starts with "0x"
 		if (str[0] == '0' && str[1] == 'x') {
-				is_hex = 1;
-				length = 2;
-				end += 2;
+				is_hex = 1; // Bool value is true, string interpreted as a hex number
+				length = 2; // length of string is at least 2
+				end += 2; // end of hex value pointer moved two forward
+
+				// Finds end of hex value by looking for nullptr and checking that end pointer
+				// is an ASCII value for 0 to 9, a to f, or A to F
 				while (*end && ((48 <= *end && *end <= 57) || (97 <= *end && *end <= 102) 
 				|| (65 <= *end && *end <= 70))) { 
 					end++;
-					length++;
+					length++; // end length of valid hex number
 				}
-				char *hex = end - 1;
+
+				char *hex = end - 1; // Starts at end of hex value
 				int i = 0;
 				int number = 0;
+
+				// Moves backwards through string of numbers
+				// to convert to decimal
 				while (*hex != 'x') {
+				    // ASCII char range for a to f, converting to actual decimal integer
 				    if (97 <= *hex && *hex <= 102) {
 						number = *hex - 87;
 					}
+					// ASCII char range for A to F
 				    else if (65 <= *hex && *hex <= 70) {
 						number = *hex - 55;
 					}
+					// ASCII char range for 0 to 9
 				    else if (48 <= *hex && *hex <= 57) {
 						number = *hex - 48;
 					}
+					// Multiplies number by 16 depending on digit number
+					// for base 16 to base 10 conversion
+					// Multiplies units digit by 1, tens by 16, hundreds by 16^2 etc.
 				    for (int j = 0; j < i; j++) {
 						number *= 16;
 					}
@@ -168,20 +186,29 @@ unsigned int strtonum(const char *str, const char **endptr)
 				}
 		}
 	}
-	if (is_hex == 0) {
+	if (is_hex == 0) { // if not hex, then maybe base 10 decimal
+
+	    // Finds end of value by looking for end pointer to looking for invalid
+		// digit (so ASCII value not in range for characters 0 to 9).
 		while (*end && (48 <= *end && *end <= 57)) {
 		    end++;
-			length++;
+			length++; // end length of valid decimal number
 		} 
-		char *dec = end - 1;
+		char *dec = end - 1; // Starts at end of decimal value
 		int i = 0;
 		int number = 0;
+
+		// Moves backwards through string of numbers to convert to decimal
 		while (48 <= *dec && *dec <= 57) {
 		    number = *dec - 48;
+
+		    // Multiplies number by 10 depending on digit number
+			// Multiplies units by 1, tens by 10, hundreds by 100 etc
 			for (int j = 0; j < i; j++) {
 				number *= 10;
 			}
 			result += number;
+			// Break out of loop once beginning of str is reached
 			if (str == dec) {
 				break;
 			}
@@ -190,9 +217,8 @@ unsigned int strtonum(const char *str, const char **endptr)
 		} 
 
 	}
-	// do same for decimal numbers
 	if (**endptr != '\0') {
-		*endptr = &str[length];	
+		*endptr = &str[length];	// Address of first invalid hex/decimal digit in str
 	}
 	return result;
 }
