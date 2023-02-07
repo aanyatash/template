@@ -115,9 +115,7 @@ int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size
     if (base != 10 && base != 16) {
 		return 0;
 	}
-	if (bufsize == 0) {
-		return 0;
-	}
+
 	unsigned int length = int_length(val); // Number of digits in number
 
     char str[length + 1];
@@ -152,7 +150,9 @@ int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size
 		    max[i] = 48;
 		}
 	}
-
+    if (bufsize == 0) {
+		return strlen(max);
+	}
 	// Move max to buf, strlcat truncates if necessary
 	buf[0] = '\0';
     return strlcat(buf, max, bufsize);
@@ -168,12 +168,7 @@ int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size
  */
 int signed_to_base(char *buf, size_t bufsize, int val, int base, size_t min_width)
 {
-    if (bufsize == 0) {
-		return 0;
-	}
 	if (val < 0) {
-	    char *buf_positive = buf + 1; // Leaves space for minus sign
-		buf[0] = '-';
 
 		// Accounts for min_width = 0
 		// to avoid passing a negative value into unsigned to base
@@ -181,7 +176,15 @@ int signed_to_base(char *buf, size_t bufsize, int val, int base, size_t min_widt
 		    min_width += 1;
 		}
 
-		// Accounts for bufsize = 1 to maintain correct return value from unsigned_to_base
+
+		if (bufsize == 0) {
+ 		    return 1 + unsigned_to_base(buf, bufsize, val*-1, base, min_width - 1);
+		}
+
+		char *buf_positive = buf + 1; // Leaves space for minus sign
+		buf[0] = '-';
+
+        // Accounts for bufsize = 1 to maintain correct return value from unsigned_to_base
 		// as this prevents a bufsize of 0 being passed in
 		if (bufsize == 1) {
 		    buf[0] = '\0';
@@ -268,7 +271,8 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 	max[i] = '\0';
 	buf[0] = '\0'; // strlcat only works on strings with nullptr
 
-	return strlcat(buf, max, bufsize);
+	int total = strlcat(buf, max, bufsize);
+	return total;
 }
 
 /* This function takes a variable number of parameters. It takes in a char
@@ -303,7 +307,6 @@ int printf(const char *format, ...)
 	int total = vsnprintf(buf, bufsize, format, args);
 	va_end(args);
 	uart_putstring(buf); // Writes to terminal
-	//memset(buf, '\0', bufsize);
 	return total;
 }
 

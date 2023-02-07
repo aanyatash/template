@@ -45,6 +45,7 @@ static void test_strlcat(void)
     assert(strcmp(buf, "CS") == 0);
     total = strlcat(buf, "107e", bufsize); // append 107e
     assert(strlen(buf) == 6);
+	assert(buf[6] == '\0');
 	assert(total == 6);
     assert(strcmp(buf, "CS107e") == 0);
 
@@ -102,17 +103,6 @@ static void test_strlcat(void)
 	assert(total == 6);
 	assert(strlen(concat) == 5);
 	assert(concat[5] == '\0');
-
-	// concatenate two null ptrs
-//	char nullptr[3];
-//	size_t nullptrsize = sizeof(nullptr);
-//
-//	memset(nullptr, '\0', nullptrsize);
-//
-//	assert(strlen(nullptr) == 0);
-//	strlcat(nullptr, '\0', nullptrsize);
-//	assert(strlen(nullptr) == 0);
-//	assert(strcmp(nullptr, '\0') == 0);
 
    // Test dstsize is 1
    char empty[2];
@@ -189,10 +179,7 @@ static void test_strtonum(void)
 	const char *one_digit = "0";
 	val = strtonum(one_digit, &zero);
 	assert(val == 0);
-	assert(zero == &one_digit[1]);
-
-	// Edge case ASCII values
-
+	assert(zero == &one_digit[1]);	
 
     // Decimal number with 02
 	const char *test_dec = NULL;
@@ -261,10 +248,8 @@ static void test_to_base(void)
 
     // Buffer size of 0
     n = unsigned_to_base(buf, 0, 126, 10, 0);
-	assert(n == 0);
-
-    // DO WE WANT TO CHECK LENGTH OF BUFFER TO ENSURE CORRECT NULL TERMINATION
-    
+	assert(n == 3);
+ 
     // Buffer size of 1
 	n = unsigned_to_base(buf, 1, 126, 10, 0);
 	assert(n == 3);
@@ -341,9 +326,10 @@ static void test_to_base(void)
 	assert(n == 2);
 
 	// Signed, bufsize = 0
+	buf[0] = '\0';
 	n = signed_to_base(buf, 0, -1, 10, 0);
-	assert(strcmp(buf, "-") == 0); // buf should be same as before/unchanged
-	assert(n == 0);
+	assert(strcmp(buf, "") == 0); // buf should be same as before/unchanged
+	assert(n == 2);
 
 	// Signed, bufsize = 1 (as bufsize would be 0 for unsigned)
     n = signed_to_base(buf, 1, -1, 10, 0);
@@ -368,7 +354,8 @@ static void test_snprintf(void)
     total = snprintf(buf, bufsize, "%d", 45);
     assert(strcmp(buf, "45") == 0);
 	assert(total == 2);
-
+    
+	memset(buf, 0x97, bufsize);
 	// Decimal with min width
 	total = snprintf(buf, bufsize, "%05d", 30);
 	assert(strcmp(buf, "00030") == 0);
@@ -454,7 +441,7 @@ static void test_snprintf(void)
     total = snprintf(buf, bufsize, "The %s is %05d%c away from %p", "lazy fox", 100, 'm', (void *) 0x2000020);
 	assert(strcmp(buf, "The lazy fox is 00100m away from 0x02000020") == 0);
 	assert(total == strlen(buf));
-	assert(strlen(buf) == '\0');
+	assert(buf[strlen(buf)] == '\0');
 
 	// bufsize = 1
     total = snprintf(buf, 1, "I'm in y%de%d", 2, 2);
@@ -465,66 +452,6 @@ static void test_snprintf(void)
 	total = snprintf(buf, 0, "Hi, %s", "Aanya");
 	assert(strcmp(buf, "") == 0);
 	assert(total = 9);
-
-	// add small buffer to test
-	// test digits here
-	// test long string
-	// test pointer
-}
-
-static void test_pinout(void) {
-
-static const char *board[] = {
-    "O-------------------------------O ",
-    "| oooooooooooooooooooo J8       | ",
-    "| 1ooooooooooooooooooo          | ",
-    "|                               | ",
-    "|[RUN]   Pi Model A+ V1.1   +=====",
-    "|         +-----+           | USB ",
-    "| |D|     | SoC |           |     ",
-    "| |S|     |     |           +=====",
-    "| |I|     +-----+               | ",
-    "|                   |C|         | ",
-    "|                   |S|         | ",
-    "|           |HDMI|  |I|  |A|    | ",
-    "O-|pwr|-----|    |-------|V|----O "
-};
-
-static const char *header[4][2] = {
-    { "3V3",     "5V" },
-    { "GPIO2",   "5V" },
-    { "GPIO3",   "GND" },
-    { "GPIO4",   "GPIO14" },
-//    { "GND",     "GPIO15" },
-//    { "GPIO17",  "GPIO18" },
-//    { "GPIO27",  "GND" },
-//    { "GPIO22",  "GPIO23" },
-//    { "3V3",     "GPIO24" },
-//    { "GPIO10",  "GND" },
-//    { "GPIO9",   "GPIO25" },
-//    { "GPIO11",  "GPIO8" },
-//    { "GND",     "GPIO7" },
-//    { "unused",  "unused" },
-//    { "GPIO5",   "GND" },
-//    { "GPIO6",   "GPIO12" },
-//    { "GPIO13",  "GND" },
-//    { "GPIO19",  "GPIO16" },
-//    { "GPIO26",  "GPIO20" },
-//    { "GND",     "GPIO21" },
-};
-
-    char buf[1024];
-	size_t bufsize = sizeof(buf);
-	memset(buf, '\0', bufsize);
-//
-//    for (int i = 0; i < sizeof(board)/sizeof(*board); i++) {
-//        snprintf(buf, bufsize, "%s\n", board[i]);
-//		}
-    snprintf(buf, bufsize, "\nJ8:\n");
-    for (int i = 0; i < sizeof(header)/sizeof(*header); i++) {
-        snprintf(buf, bufsize, " %s\t   (%02d)\t(%02d)    %s\n", header[i][0], i*2+1, i*2+2, header[i][1]);
-    }
-
 
 }
 
@@ -571,11 +498,8 @@ void main(void)
     test_strtonum();
     test_to_base();
     test_snprintf();
-	test_pinout();
-    //test_disassemble();
+    test_disassemble();
 
-
-    // TODO: Add more and better tests!
 
     uart_putstring("Successfully finished executing main() in tests/test_strings_printf.c\n");
     uart_putchar(EOT);

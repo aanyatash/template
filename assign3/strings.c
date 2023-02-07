@@ -119,129 +119,19 @@ size_t strlcat(char *dst, const char *src, size_t dstsize)
  * or decimal number in the input string if the **endptr is not set
  * to NULL.
  */
-//unsigned int strtonum(const char *str, const char **endptr)
-//{
-//    // This accounts for the empty string
-//	if (*str == '\0') {
-//	    // Set endptr to nullptr on empty string
-//		if (**endptr != '\0') {
-//		    *endptr = &str[0];
-//		}
-//		return 0;
-//	}
-//	int length = 0; // Keeps track of end length of valid hex/decimal number
-//
-//	// Creates a buffer to copy str into as str is a const char pointer
-//	// Must iterate through copy of str instead
-//	char buf[strlen(str)];
-//	memset(buf, '\0', sizeof(buf));
-//	memcpy(buf, str, sizeof(buf));
-//
-//	char *end = buf; // pointer to track end of hex/dec value in string
-//	int result = 0;
-//	int is_hex = 0; // functions a bool value
-//
-//	if (strlen(str) >= 2) { // Can only be hex if starts with "0x"
-//		if (str[0] == '0' && str[1] == 'x') {
-//				is_hex = 1; // Bool value is true, string interpreted as a hex number
-//				length = 2; // length of string is at least 2
-//				end += 2; // end of hex value pointer moved two forward
-//
-//				// Finds end of hex value by looking for nullptr and checking that end pointer
-//				// is an ASCII value for 0 to 9, a to f, or A to F
-//				while (*end && ((48 <= *end && *end <= 57) || (97 <= *end && *end <= 102) 
-//				|| (65 <= *end && *end <= 70))) { 
-//					end++;
-//					length++; // end length of valid hex number
-//				}
-//
-//				char *hex = end - 1; // Starts at end of hex value
-//				int i = 0;
-//				int number = 0;
-//
-//				// Moves backwards through string of numbers
-//				// to convert to decimal
-//				while (*hex != 'x') {
-//				    // ASCII char range for a to f, converting to actual decimal integer
-//				    if (97 <= *hex && *hex <= 102) {
-//						number = *hex - 87;
-//					}
-//					// ASCII char range for A to F
-//				    else if (65 <= *hex && *hex <= 70) {
-//						number = *hex - 55;
-//					}
-//					// ASCII char range for 0 to 9
-//				    else if (48 <= *hex && *hex <= 57) {
-//						number = *hex - 48;
-//					}
-//					// Multiplies number by 16 depending on digit number
-//					// for base 16 to base 10 conversion
-//					// Multiplies units digit by 1, tens by 16, hundreds by 16^2 etc.
-//				    for (int j = 0; j < i; j++) {
-//						number *= 16;
-//					}
-//				    result += number;
-//					hex--;
-//					i++;
-//				}
-//		}
-//	}
-//	if (is_hex == 0) { // if not hex, then maybe base 10 decimal
-//
-//	    // Finds end of value by looking for end pointer to looking for invalid
-//		// digit (so ASCII value not in range for characters 0 to 9).
-//		while (*end && (48 <= *end && *end <= 57)) {
-//		    end++;
-//			length++; // end length of valid decimal number
-//		} 
-//		char *dec = end - 1; // Starts at end of decimal value
-//		int i = 0;
-//		int number = 0;
-//
-//		// Moves backwards through string of numbers to convert to decimal
-//		while (48 <= *dec && *dec <= 57) {
-//		    number = *dec - 48;
-//
-//		    // Multiplies number by 10 depending on digit number
-//			// Multiplies units by 1, tens by 10, hundreds by 100 etc
-//			for (int j = 0; j < i; j++) {
-//				number *= 10;
-//			}
-//			result += number;
-//			// Break out of loop once beginning of str is reached
-//			if (buf == dec) {
-//				break;
-//			}
-//			dec--;
-//			i++;
-//		} 
-//
-//	}
-//	if (**endptr != '\0') {
-//		*endptr = &str[length];	// Address of first invalid hex/decimal digit in str
-//	}
-//	return result;
-//}
-
 unsigned int strtonum(const char *str, const char **endptr)
 {
     // This accounts for the empty string
 	if (*str == '\0') {
 	    // Set endptr to nullptr on empty string
-		if (**endptr != '\0') {
+		if (endptr) {
 		    *endptr = &str[0];
 		}
 		return 0;
 	}
 	int length = 0; // Keeps track of end length of valid hex/decimal number
 
-	// Creates a buffer to copy str into as str is a const char pointer
-	// Must iterate through copy of str instead
-//	char buf[strlen(str)];
-//	memset(buf, '\0', sizeof(buf));
-//	memcpy(buf, str, sizeof(buf));
 
-	//char *end = &buf[0]; // pointer to track end of hex/dec value in string
 	int result = 0;
 	int is_hex = 0; // functions a bool value
 	int index = 0;
@@ -250,13 +140,11 @@ unsigned int strtonum(const char *str, const char **endptr)
 		if (str[0] == '0' && str[1] == 'x') {
 				is_hex = 1; // Bool value is true, string interpreted as a hex number
 				length = 2; // length of string is at least 2
-				//length += 2; // end of hex value pointer moved two forward
 
 				// Finds end of hex value by looking for nullptr and checking that end pointer
 				// is an ASCII value for 0 to 9, a to f, or A to F
 				while (str[length] && ((48 <= str[length] && str[length] <= 57) || (97 <= str[length] && str[length] <= 102) 
 				|| (65 <= str[length] && str[length] <= 70))) { 
-					//end++;
 					length++; // end length of valid hex number
 				}
 
@@ -286,7 +174,6 @@ unsigned int strtonum(const char *str, const char **endptr)
 						number *= 16;
 					}
 				    result += number;
-					//hex--;
 					index--;
 					i++;
 				}
@@ -305,6 +192,7 @@ unsigned int strtonum(const char *str, const char **endptr)
 		int number = 0;
 
 		// Moves backwards through string of numbers to convert to decimal
+		// Breaks out of loop once beginning of string reached
 		while (48 <= str[index] && str[index] <= 57 && index >= 0) {
 		    number = str[index] - 48;
 
@@ -314,17 +202,12 @@ unsigned int strtonum(const char *str, const char **endptr)
 				number *= 10;
 			}
 			result += number;
-			// Break out of loop once beginning of str is reached
-			//if (str == dec) {
-			//	break;
-			//}
-			//dec--;
 			index--;
 			i++;
 		} 
 
 	}
-	if (**endptr != '\0') {
+	if (endptr) {
 		*endptr = &str[length];	// Address of first invalid hex/decimal digit in str
 	}
 	return result;
