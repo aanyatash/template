@@ -303,6 +303,7 @@ int printf(const char *format, ...)
 	int total = vsnprintf(buf, bufsize, format, args);
 	va_end(args);
 	uart_putstring(buf); // Writes to terminal
+	//memset(buf, '\0', bufsize);
 	return total;
 }
 

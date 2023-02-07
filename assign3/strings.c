@@ -237,9 +237,9 @@ unsigned int strtonum(const char *str, const char **endptr)
 
 	// Creates a buffer to copy str into as str is a const char pointer
 	// Must iterate through copy of str instead
-	char buf[strlen(str)];
-	memset(buf, '\0', sizeof(buf));
-	memcpy(buf, str, sizeof(buf));
+//	char buf[strlen(str)];
+//	memset(buf, '\0', sizeof(buf));
+//	memcpy(buf, str, sizeof(buf));
 
 	//char *end = &buf[0]; // pointer to track end of hex/dec value in string
 	int result = 0;
