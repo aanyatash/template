@@ -195,11 +195,11 @@ static void test_strtonum(void)
 
 
     // Decimal number with 02
-//	const char *test_dec = NULL;
-//	const char *dec_number = "02";
-//    val = strtonum(dec_number, &test_dec);
-//	assert(val == 2);
-//	assert( test_dec == &dec_number[2] );
+	const char *test_dec = NULL;
+	const char *dec_number = "02";
+    val = strtonum(dec_number, &test_dec);
+	assert(val == 2);
+	assert( test_dec == &dec_number[2] );
 }
 
 static void test_to_base(void)
