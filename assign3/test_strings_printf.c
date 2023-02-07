@@ -39,15 +39,18 @@ static void test_strlcat(void)
 
     buf[0] = '\0'; // null in first index makes empty string
     assert(strlen(buf) == 0);
-    strlcat(buf, "CS", bufsize); // append CS
+    total = strlcat(buf, "CS", bufsize); // append CS
     assert(strlen(buf) == 2);
+	assert(total == 2);
     assert(strcmp(buf, "CS") == 0);
-    strlcat(buf, "107e", bufsize); // append 107e
+    total = strlcat(buf, "107e", bufsize); // append 107e
     assert(strlen(buf) == 6);
+	assert(total == 6);
     assert(strcmp(buf, "CS107e") == 0);
 
 	// Test if buf size = 0 and nothing in buf
-    strlcat(buf + 6, " work", 0);
+    total = strlcat(buf + 6, " work", 0);
+	assert(total == 5);
 	assert(strcmp(buf + 6, "") == 0);
 	assert(strlen(buf+6) == 0);
 	
@@ -61,8 +64,9 @@ static void test_strlcat(void)
 	new[1] = 'i';
 	new[2] = '\0';
     assert(strlen(new) == 2);
-	strlcat(new, "you", newsize);
+	total = strlcat(new, "you", newsize);
 	assert(strlen(new) == 5);
+	assert(total == 5);
 	assert(strcmp(new, "hiyou") == 0);
 
     // concatenated final string
@@ -75,23 +79,27 @@ static void test_strlcat(void)
 	concat[1] = 'i';
 	concat[2] = '\0';
 	assert(strlen(concat) == 2);
-	strlcat(concat, "there", concatsize);
+	total = strlcat(concat, "there", concatsize);
 	assert(strlen(concat) == 5);
+	assert(total == 7);
 	assert(strcmp(concat, "hithe") == 0);
 	assert(concat[5] == '\0');
 
     // dst size is wrong
-	strlcat(concat, "", 3);
+	total = strlcat(concat, "", 3);
+	assert(total == 3);
 	assert(strlen(concat) == 5);
 	assert(concat[5] == '\0');
 
     // src is empty, dst size is correct
-	strlcat(concat, "", concatsize);
+	total = strlcat(concat, "", concatsize);
+	assert(total == 5);
 	assert(strlen(concat) == 5);
 	assert(concat[5] == '\0');
 
 	// no space in dst
-	strlcat(concat, "m", concatsize);
+	total = strlcat(concat, "m", concatsize);
+	assert(total == 6);
 	assert(strlen(concat) == 5);
 	assert(concat[5] == '\0');
 
@@ -128,7 +136,6 @@ static void test_strtonum(void)
 
     const char *input = "107rocks";
     const char *rest = NULL;
-
     val = strtonum(input, &rest);
     assert(val == 107);
     // rest was modified to point to first non-digit character
@@ -137,6 +144,7 @@ static void test_strtonum(void)
     // Invalid input 
     const char *wordptr = NULL;
 	const char *word = "joker";
+	assert(strlen(word) == 5);
 	val = strtonum(word, &wordptr);
 	assert(val == 0);
 	assert(word == &word[0]);
@@ -182,7 +190,16 @@ static void test_strtonum(void)
 	val = strtonum(one_digit, &zero);
 	assert(val == 0);
 	assert(zero == &one_digit[1]);
-  
+
+	// Edge case ASCII values
+
+
+    // Decimal number with 02
+//	const char *test_dec = NULL;
+//	const char *dec_number = "02";
+//    val = strtonum(dec_number, &test_dec);
+//	assert(val == 2);
+//	assert( test_dec == &dec_number[2] );
 }
 
 static void test_to_base(void)
@@ -492,7 +509,7 @@ void main(void)
     test_strtonum();
     test_to_base();
     test_snprintf();
-    // test_disassemble();
+    //test_disassemble();
 
 
     // TODO: Add more and better tests!

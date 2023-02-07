@@ -209,7 +209,7 @@ unsigned int strtonum(const char *str, const char **endptr)
 			}
 			result += number;
 			// Break out of loop once beginning of str is reached
-			if (str == dec) {
+			if (buf == dec) {
 				break;
 			}
 			dec--;
