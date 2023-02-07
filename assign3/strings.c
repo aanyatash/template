@@ -244,6 +244,7 @@ unsigned int strtonum(const char *str, const char **endptr)
 	//char *end = &buf[0]; // pointer to track end of hex/dec value in string
 	int result = 0;
 	int is_hex = 0; // functions a bool value
+	int index = 0;
 
 	if (strlen(str) >= 2) { // Can only be hex if starts with "0x"
 		if (str[0] == '0' && str[1] == 'x') {
@@ -253,30 +254,30 @@ unsigned int strtonum(const char *str, const char **endptr)
 
 				// Finds end of hex value by looking for nullptr and checking that end pointer
 				// is an ASCII value for 0 to 9, a to f, or A to F
-				while (buf[length] && ((48 <= buf[length] && buf[length] <= 57) || (97 <= buf[length] && buf[length] <= 102) 
-				|| (65 <= buf[length] && buf[length] <= 70))) { 
+				while (str[length] && ((48 <= str[length] && str[length] <= 57) || (97 <= str[length] && str[length] <= 102) 
+				|| (65 <= str[length] && str[length] <= 70))) { 
 					//end++;
 					length++; // end length of valid hex number
 				}
 
-				char *hex = &buf[length - 1]; // Starts at end of hex value
+				index = length - 1; // Starts at end of hex value
 				int i = 0;
 				int number = 0;
 
 				// Moves backwards through string of numbers
 				// to convert to decimal
-				while (*hex != 'x') {
+				while (str[index] != 'x') {
 				    // ASCII char range for a to f, converting to actual decimal integer
-				    if (97 <= *hex && *hex <= 102) {
-						number = *hex - 87;
+				    if (97 <= str[index] && str[index] <= 102) {
+						number = str[index] - 87;
 					}
 					// ASCII char range for A to F
-				    else if (65 <= *hex && *hex <= 70) {
-						number = *hex - 55;
+				    else if (65 <= str[index] && str[index] <= 70) {
+						number = str[index] - 55;
 					}
 					// ASCII char range for 0 to 9
-				    else if (48 <= *hex && *hex <= 57) {
-						number = *hex - 48;
+				    else if (48 <= str[index] && str[index] <= 57) {
+						number = str[index] - 48;
 					}
 					// Multiplies number by 16 depending on digit number
 					// for base 16 to base 10 conversion
@@ -285,7 +286,8 @@ unsigned int strtonum(const char *str, const char **endptr)
 						number *= 16;
 					}
 				    result += number;
-					hex--;
+					//hex--;
+					index--;
 					i++;
 				}
 		}
@@ -294,17 +296,17 @@ unsigned int strtonum(const char *str, const char **endptr)
 
 	    // Finds end of value by looking for end pointer to looking for invalid
 		// digit (so ASCII value not in range for characters 0 to 9).
-		while (buf[length] && (48 <= buf[length] && buf[length] <= 57)) {
+		while (str[length] && (48 <= str[length] && str[length] <= 57)) {
 		    //end++;
 			length++; // end length of valid decimal number
 		} 
-		char *dec = &buf[length - 1]; // Starts at end of decimal value
+		index = length - 1; // Starts at end of decimal value
 		int i = 0;
 		int number = 0;
 
 		// Moves backwards through string of numbers to convert to decimal
-		while (48 <= *dec && *dec <= 57) {
-		    number = *dec - 48;
+		while (48 <= str[index] && str[index] <= 57 && index >= 0) {
+		    number = str[index] - 48;
 
 		    // Multiplies number by 10 depending on digit number
 			// Multiplies units by 1, tens by 10, hundreds by 100 etc
@@ -313,10 +315,11 @@ unsigned int strtonum(const char *str, const char **endptr)
 			}
 			result += number;
 			// Break out of loop once beginning of str is reached
-			if (buf == dec) {
-				break;
-			}
-			dec--;
+			//if (str == dec) {
+			//	break;
+			//}
+			//dec--;
+			index--;
 			i++;
 		} 
 
