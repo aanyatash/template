@@ -250,7 +250,7 @@ static void test_to_base(void)
 	assert(n == 1);
 	assert(strcmp(buf, "0") == 0);
 
-    // Signed to base -  min width specified, but bufsize is smaller
+    // Signed to base - min width specified, but bufsize is smaller
 	n = signed_to_base(buf, bufsize, -9999, 10, 6);
     assert(strcmp(buf, "-099") == 0);
     assert(n == 6);
@@ -261,10 +261,21 @@ static void test_to_base(void)
 	assert(n == 3);
 
 	// Signed, base 16, normal
+    n = signed_to_base(buf, bufsize, -126, 16, 0);
+	assert(strcmp(buf, "-126") == 0);
+	assert(n == 4);
 
-    // 
+    // Zero signed
 
-	// Zero signed
+	// Zero signed but min width 2 or 3
+
+	// -5 signed, min width 1
+
+	// -5 signed, min width 3
+
+	// Signed, but buffer to small
+	// Signed bufsize = 1
+	// Signed bufsize = 0
 }
 
 static void test_snprintf(void)
