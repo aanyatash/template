@@ -40,7 +40,7 @@ unsigned int int_length (unsigned int val) {
 
 	// Accounts for 0 case
 	if (val == 0) {
-		length = 1;
+		return 1;
 	}
 
 	unsigned int tmp = val;
@@ -69,6 +69,10 @@ void num_to_base_str(char *str, unsigned int val, int base) {
 	int add_char = val;
 	int i = 0;
 	int digit = 0;
+	if (add_char == 0) {
+	    temp[0] = add_char + 48;
+		i++;
+	}
 	while (add_char != 0) {
 	    digit = add_char % base;
 		if (digit < 10) {
@@ -166,6 +170,9 @@ int signed_to_base(char *buf, size_t bufsize, int val, int base, size_t min_widt
 	if (val < 0) {
 	    char *buf_positive = buf + 1;
 		buf[0] = '-';
+		if (min_width == 0) {
+		    min_width += 1;
+		}
 		return 1 + unsigned_to_base(buf_positive, bufsize - 1, val*-1, base, min_width - 1);
 	}
 	return unsigned_to_base(buf, bufsize, val, base, min_width);
@@ -183,7 +190,12 @@ int snprintf(char *buf, size_t bufsize, const char *format, ...)
 {
     int i = 0;
 	int format_i = 0;
-	int total = 0; // counter for total number of characters that should be added
+
+    // Counter for total number of characters that should be added
+	// Use a counter for this instead of just returning the end
+	// length of max string in case output greater than 1024 chars
+	int total = 0;
+
 	char max[1024];
 	size_t maxsize = sizeof(max);
 	memset(max, '\0', maxsize);
@@ -193,50 +205,44 @@ int snprintf(char *buf, size_t bufsize, const char *format, ...)
 	    if (format[format_i] == '%') { // assumes any % sign always followed by valid code
 		    if (format[format_i + 1] == 'c') {
 				max[i] = va_arg(ap, int);
-				max[i+1] = '\0';
-				total += 1;
+				max[i+1] = '\0'; // So strlen(max) can be used at end
 			}
 			else if (format[format_i + 1] == '%') {
 				max[i] = '%';
-				max [i+1] = '\0';
-				total += 1;
+				max [i+1] = '\0'; // So strlen(max) can be used at end
 			}
 			else if (format[format_i + 1] == 's') {
 			    max[i] = '\0';
 				char *str = va_arg(ap, char*);
-				total += strlcat(max, str, maxsize);
+				strlcat(max, str, maxsize);
 			}
 			else if (format[format_i + 1] == '0') {
 			    const char* letter = NULL;
 				unsigned int min_width = strtonum(format + format_i + 1, &letter);
 				if (*letter == 'd') {
-					max[i] = '\0';
 				    int val = va_arg(ap, int);
-				    total += signed_to_base(max + i, maxsize - i, val, 10, min_width);
+				    signed_to_base(max + i, maxsize - i, val, 10, min_width);
 				    format_i += int_length(min_width) + 1;
 				}
 			    else if (*letter == 'x') {
-				    max[i] = '\0';
 				    int val = va_arg(ap, int);
-				    total += signed_to_base(max + i, maxsize - i, val, 16, min_width);
+				    signed_to_base(max + i, maxsize - i, val, 16, min_width);
 				    format_i += int_length(min_width) + 1;
 			    }
 			}
 			else if (format[format_i + 1] == 'd') {
-				max[i] = '\0';
 				int val = va_arg(ap, int);
-				total += signed_to_base(max + i, maxsize - i, val, 10, 0);
+				signed_to_base(max + i, maxsize - i, val, 10, 0);
 			}
 			else if (format[format_i + 1] == 'x') {
-				max[i] = '\0';
 				int val = va_arg(ap, int);
-				total += signed_to_base(max + i, maxsize - i, val, 16, 0);
+				signed_to_base(max + i, maxsize - i, val, 16, 0);
 			}
 			else if (format[format_i + 1] == 'p') {
 				unsigned int val = va_arg(ap, unsigned int);
 				max[i] = '0';
 				max[i+1] = 'x';
-				total += signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 0);
+				signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 8);
 			}
 			i = strlen(max);
 			format_i += 2;
@@ -244,14 +250,17 @@ int snprintf(char *buf, size_t bufsize, const char *format, ...)
 		else {
 		    max[i] = format[format_i];
 		    i++;
-			total++;
 		    format_i++;
 		}
 	}
 	va_end(ap);
 	max[i] = '\0';
 	buf[0] = '\0';
-	strlcat(buf, max, bufsize);
+
+	total = strlcat(buf, max, bufsize);
+
+	// returns total rather than return strlcat total to account for if
+	// string greater than or equal to 1024 chars
     return total;
 }
 

@@ -44,6 +44,11 @@ static void test_strlcat(void)
     strlcat(buf, "107e", bufsize); // append 107e
     assert(strlen(buf) == 6);
     assert(strcmp(buf, "CS107e") == 0);
+
+	// Test if buf size = 0 and nothing in buf
+    strlcat(buf + 6, " work", 0);
+	assert(strcmp(buf + 6, "") == 0);
+	assert(strlen(buf+6) == 0);
 	
 	// TEST 2 - size of final string exactly right
     char new[6];
@@ -122,7 +127,6 @@ static void test_strtonum(void)
 	assert(val == 0);
 	assert(word == &word[0]);
 
-
 	// Empty string
     const char *emptyptr = NULL;
 	const char *empty = "";
@@ -180,33 +184,36 @@ static void test_to_base(void)
 	assert(n == 2);
 
     // Test for base 10 but need padding
-    buf[0] = '\0';
 	n = unsigned_to_base(buf, bufsize, 35, 10, 3);
 	assert(strcmp(buf, "035") == 0);
 	assert(n == 3);
 
     // Test base 10, but truncation needed
-	buf[0] = '\0';
 	n = unsigned_to_base(buf, bufsize, 12345, 10, 3);
 	assert(strcmp(buf, "1234") == 0);
 	assert(n == 5);
 
+	// Test base 10, min width equals size of number
+	n = unsigned_to_base(buf, bufsize, 35, 10, 2);
+	assert(strcmp(buf, "35") == 0);
+	assert(n == 2);
 
     // Test base 16, normal
-    buf[0] = '\0';
 	n = unsigned_to_base(buf, bufsize, 126, 16, 0);
 	assert(strcmp(buf, "7e") == 0);
 	assert(n == 2);
 	
+    // Test base 16, min width equals size of number
+	n = unsigned_to_base(buf, bufsize, 126, 16, 2);
+	assert(strcmp(buf, "7e") == 0);
+	assert(n == 2);
 
 	// Test base 16, need padding
-	buf[0] = '\0';
 	n = unsigned_to_base(buf, bufsize, 126, 16, 4);
 	assert(strcmp(buf, "007e") == 0);
 	assert(n == 4);
 
 	// Test base 16, truncation and padding needed
-	buf[0] = '\0';
 	n = unsigned_to_base(buf, bufsize, 126, 16, 6);
 	assert(strcmp(buf, "0000") == 0);
 	assert(n == 6);
@@ -219,69 +226,157 @@ static void test_to_base(void)
 	assert(n == 2);
 
 	// Invalid base
-	buf[0] = '\0';
     n = unsigned_to_base(buf, bufsize, 126, 8, 0);
 	assert(n == 0);
 
-    // buffer size of 0
+    // Buffer size of 0
     n = unsigned_to_base(buf, 0, 126, 10, 0);
 	assert(n == 0);
 
     // DO WE WANT TO CHECK LENGTH OF BUFFER TO ENSURE CORRECT NULL TERMINATION
-    // what if the number is more than a byte - why is max 1024???
     
-    // buffer size of 1
-	buf[0] = '\0';
+    // Buffer size of 1
 	n = unsigned_to_base(buf, 1, 126, 10, 0);
 	assert(n == 3);
 	assert(strcmp(buf, "") == 0);
 
-	buf[0] = '\0';
+	// Zero unsigned to base 10
+	n = unsigned_to_base(buf, bufsize, 0, 10, 0);
+    assert(n == 1);
+	assert(strcmp(buf, "0") == 0);
+
+	// Zero unsigned to base 16
+	n = unsigned_to_base(buf, bufsize, 0, 16, 0);
+	assert(n == 1);
+	assert(strcmp(buf, "0") == 0);
+
+    // Signed to base -  min width specified, but bufsize is smaller
 	n = signed_to_base(buf, bufsize, -9999, 10, 6);
-    assert(strcmp(buf, "-099") == 0)
+    assert(strcmp(buf, "-099") == 0);
     assert(n == 6);
+
+	// Signed to base, base 10, normal
+    n = signed_to_base(buf, bufsize, -38, 10, 0);
+	assert(strcmp(buf, "-38") == 0);
+	assert(n == 3);
+
+	// Signed, base 16, normal
+
+    // 
+
+	// Zero signed
 }
 
 static void test_snprintf(void)
 {
     char buf[100];
     size_t bufsize = sizeof(buf);
+	int total;
 
     memset(buf, 0x77, bufsize); // init contents with known value
 
     // Start off simple...
-    snprintf(buf, bufsize, "Hello, world!");
+    total = snprintf(buf, bufsize, "Hello, world!");
     assert(strcmp(buf, "Hello, world!") == 0);
+	assert(total == 13);
 
     // Decimal
-    snprintf(buf, bufsize, "%d", 45);
+    total = snprintf(buf, bufsize, "%d", 45);
     assert(strcmp(buf, "45") == 0);
+	assert(total == 2);
 
-    // Hexadecimal
-    snprintf(buf, bufsize, "%04x", 0xef);
+	// Decimal with min width
+	total = snprintf(buf, bufsize, "%05d", 30);
+	assert(strcmp(buf, "00030") == 0);
+	assert(total == 5);
+
+    // Hexadecimal with min width
+    total = snprintf(buf, bufsize, "%04x", 0xef);
     assert(strcmp(buf, "00ef") == 0);
+	assert(total = 4);
+
+	// Hexadecimal without min width
+	total = snprintf(buf, bufsize, "%x", 126);
+	assert(strcmp(buf, "7e") == 0);
+	assert(total == 2);
+
+	// Min width equals same as number of digits in decimal
+	total = snprintf(buf, bufsize, "%03d", 126);
+    assert(strcmp(buf, "126") == 0);
+	assert(total == 3);
+
+	// Test negative digits for decimal
+	total = snprintf(buf, bufsize, "%d", -38);
+	assert(strcmp(buf, "-38") == 0);
+	assert(total == 3);
+
+	// Test negative digits for hexadecimal
+    total = snprintf(buf, bufsize, "%x", -126);
+	assert(strcmp(buf, "-7e") == 0);
+	assert(total == 3);
+
+	// Test negative number with specified min width - hex
+    total = snprintf(buf, bufsize, "%09x", -126);
+	assert(strcmp(buf, "-0000007e") == 0);
+	assert(total == 9);
+
+	// Test negative number with specified min width - dec
+	total = snprintf(buf, bufsize, "%04d", -7);
+	assert(strcmp(buf, "-007") == 0);
+	assert(total == 4);
+
+	// Test char, string, and digit with specified width
+    total = snprintf(buf, bufsize, "%c picked up %03d %s.",'I', 5, "eggs");
+	assert(strcmp(buf, "I picked up 005 eggs.") == 0);
+	assert(total == strlen(buf));
 
     // Pointer
-    snprintf(buf, bufsize, "%p", (void *) 0x20200004);
+    total = snprintf(buf, bufsize, "%p", (void *) 0x20200004);
     assert(strcmp(buf, "0x20200004") == 0);
+	assert(total == 10);
 
     // Character
-	buf[0] = '\0';
-    snprintf(buf, bufsize, "%c", 'A');
+    total = snprintf(buf, bufsize, "%c", 'A');
     assert(strcmp(buf, "A") == 0);
+	assert(total == 1);
 
     // String
-    buf[0] = '\0';
-    snprintf(buf, bufsize, "%s", "binky");
+    total = snprintf(buf, bufsize, "%s", "binky");
     assert(strcmp(buf, "binky") == 0);
+	assert(total == 5);
 
     // Format string with intermixed codes
-    snprintf(buf, bufsize, "CS%d%c!", 107, 'e');
+    total = snprintf(buf, bufsize, "CS%d%c!", 107, 'e');
     assert(strcmp(buf, "CS107e!") == 0);
+	assert(total == 7);
 
     // Test return value
     assert(snprintf(buf, bufsize, "Hello") == 5);
     assert(snprintf(buf, 2, "Hello") == 5);
+
+	// Character and percent
+	total = snprintf(buf, bufsize, "%c%c = 100%% fresh", 'C', 'S');
+    assert(strcmp(buf, "CS = 100% fresh") == 0);
+	assert(total == 15);
+    
+    // Buffer size too small
+    char new[5];
+	size_t newsize = sizeof(new);
+	total = snprintf(new, newsize, "Hi, %s!", "Aanya");
+	assert(strcmp(new, "Hi, ") == 0);
+	assert(total == 10);
+
+    // Test large string
+    total = snprintf(buf, bufsize, "The %s is %05d%c away from %p", "lazy fox", 100, 'm', (void *) 0x2000020);
+	assert(strcmp(buf, "The lazy fox is 00100m away from 0x02000020") == 0);
+	assert(total == strlen(buf));
+
+	// test return value for when buf size too small
+	// Test negative digits
+	// test format string with multiple codes
+	// buf size = 1
+	// buf size = 0
+    // too many arguments, not enough percents
 }
 
 // This function just here as code to disassemble for extension

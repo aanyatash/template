@@ -95,7 +95,7 @@ int strcmp(const char *s1, const char *s2)
 size_t strlcat(char *dst, const char *src, size_t dstsize)
 {
     // dstsize not correct or dst not proper string
-    if (strlen(dst) > dstsize) {
+    if (strlen(dst) > dstsize || dstsize == 0) {
 		return dstsize + strlen(src);
 	}
 	char *end = dst;
