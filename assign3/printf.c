@@ -147,11 +147,7 @@ int unsigned_to_base(char *buf, size_t bufsize, unsigned int val, int base, size
 
 	// move max to buf, think about truncation
     buf[0] = '\0';
-    strlcat(buf, max, bufsize);
-	if (bufsize < max_length + 1) {
-	    return max_length;
-	}
-    return strlen(buf);
+    return strlcat(buf, max, bufsize);
 }
 
 
@@ -173,6 +169,10 @@ int signed_to_base(char *buf, size_t bufsize, int val, int base, size_t min_widt
 		if (min_width == 0) {
 		    min_width += 1;
 		}
+		if (bufsize == 1) {
+		    buf[0] = '\0';
+			bufsize += 1;
+		}
 		return 1 + unsigned_to_base(buf_positive, bufsize - 1, val*-1, base, min_width - 1);
 	}
 	return unsigned_to_base(buf, bufsize, val, base, min_width);
@@ -191,12 +191,7 @@ int snprintf(char *buf, size_t bufsize, const char *format, ...)
     int i = 0;
 	int format_i = 0;
 
-    // Counter for total number of characters that should be added
-	// Use a counter for this instead of just returning the end
-	// length of max string in case output greater than 1024 chars
-	int total = 0;
-
-	char max[1024];
+    char max[1024];
 	size_t maxsize = sizeof(max);
 	memset(max, '\0', maxsize);
 	va_list ap;
@@ -257,11 +252,7 @@ int snprintf(char *buf, size_t bufsize, const char *format, ...)
 	max[i] = '\0';
 	buf[0] = '\0';
 
-	total = strlcat(buf, max, bufsize);
-
-	// returns total rather than return strlcat total to account for if
-	// string greater than or equal to 1024 chars
-    return total;
+	return strlcat(buf, max, bufsize);
 }
 
 int printf(const char *format, ...)

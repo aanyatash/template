@@ -105,6 +105,8 @@ static void test_strlcat(void)
 //	strlcat(nullptr, '\0', nullptrsize);
 //	assert(strlen(nullptr) == 0);
 //	assert(strcmp(nullptr, '\0') == 0);
+
+   // Test buf size is 1
 }
 
 static void test_strtonum(void)
@@ -168,8 +170,7 @@ static void test_strtonum(void)
 	val = strtonum(one_digit, &zero);
 	assert(val == 0);
 	assert(zero == &one_digit[1]);
-
-
+  
 }
 
 static void test_to_base(void)
@@ -262,20 +263,63 @@ static void test_to_base(void)
 
 	// Signed, base 16, normal
     n = signed_to_base(buf, bufsize, -126, 16, 0);
-	assert(strcmp(buf, "-126") == 0);
-	assert(n == 4);
+	assert(strcmp(buf, "-7e") == 0);
+	assert(n == 3);
 
     // Zero signed
+    n = signed_to_base(buf, bufsize, 0, 16, 0);
+	assert(strcmp(buf, "0") == 0);
+	assert(n == 1);
 
-	// Zero signed but min width 2 or 3
+	// One but calling signed function
+    n = signed_to_base(buf, bufsize, 1, 10, 0);
+	assert(strcmp(buf, "1") == 0);
+    assert(n == 1);
 
-	// -5 signed, min width 1
+	// Zero signed but min width 3
+	n = signed_to_base(buf, bufsize, 0, 10, 3);
+	assert(strcmp(buf, "000") == 0);
+    assert(n == 3);
 
-	// -5 signed, min width 3
+	// -10 signed, base 16, min width 2 (hex value a)
+	n = signed_to_base(buf, bufsize, -10, 16, 2);
+	assert(strcmp(buf, "-a") == 0);
+	assert(n == 2);
 
-	// Signed, but buffer to small
-	// Signed bufsize = 1
+	// -15 signed, base 16, min width 2 (hex value f)
+	n = signed_to_base(buf, bufsize, -15, 16, 2);
+	assert(strcmp(buf, "-f") == 0);
+	assert(n == 2);
+
+	// -1 signed, min width 1, boundary case
+    n = signed_to_base(buf, bufsize, -1, 10, 1);
+	assert(strcmp(buf, "-1") == 0);
+	assert(n == 2);
+
+	// Signed, but buffer too small
+    n = signed_to_base(new, newsize, -1, 10, 0);
+	assert(strcmp(new, "-") == 0);
+	assert(n == 2);
+
+	// Signed, but buffer too small and need padding
+	n = signed_to_base(new, newsize, -1, 10, 3);
+	assert(strcmp(new, "-") == 0);
+	assert(n == 3);
+    
+	// Signed, but bufsize = 2, so when calls unsigned function, bufsize is 1
+    n = signed_to_base(buf, 2, -1, 10, 0);
+	assert(strcmp(buf, "-") == 0);
+	assert(n == 2);
+
 	// Signed bufsize = 0
+	n = signed_to_base(buf, 0, -1, 10, 0);
+	assert(strcmp(buf, "-") == 0); // buf should be same as before/unchanged
+	assert(n == 0);
+
+	// Signed bufsize = 1 (as bufsize would be 0 for unsigned)
+    n = signed_to_base(buf, 1, -1, 10, 0);
+	assert(strcmp(buf, "") == 0);
+	assert(n == 2);
 }
 
 static void test_snprintf(void)
@@ -382,12 +426,8 @@ static void test_snprintf(void)
 	assert(strcmp(buf, "The lazy fox is 00100m away from 0x02000020") == 0);
 	assert(total == strlen(buf));
 
-	// test return value for when buf size too small
-	// Test negative digits
-	// test format string with multiple codes
 	// buf size = 1
 	// buf size = 0
-    // too many arguments, not enough percents
 }
 
 // This function just here as code to disassemble for extension
