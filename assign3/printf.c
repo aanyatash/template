@@ -1,6 +1,7 @@
 /* Name: Aanya Tashfeen
  * Filename: printf.c
- * This file contains the code for a printf module.
+ * This file contains the code for a printf module. The main functions include
+ * signed_to_base, vsn_printf, and printf.
  */
 #include "printf.h"
 #include <stdarg.h>
