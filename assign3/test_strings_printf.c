@@ -24,15 +24,16 @@ static void test_strcmp(void)
     assert(strcmp("apple", "applesauce") < 0);
     assert(strcmp("pears", "apples") > 0);
 	assert(strcmp("","") == 0);
-	assert(strcmp("apples", "") > 0);
-	assert(strcmp("", "pears") < 0);
-	assert(strcmp("good", "goof") < 0);
+	assert(strcmp("apples", "") == 97);
+	assert(strcmp("", "pears") == -112);
+	assert(strcmp("good", "goof") == -2);
 }
 
 static void test_strlcat(void)
 {
     char buf[20];
     size_t bufsize = sizeof(buf);
+	int total;
 
     memset(buf, 0x77, bufsize); // init contents with known value
 
@@ -50,7 +51,7 @@ static void test_strlcat(void)
 	assert(strcmp(buf + 6, "") == 0);
 	assert(strlen(buf+6) == 0);
 	
-	// TEST 2 - size of final string exactly right
+	// size of final string exactly right to fit in buffer
     char new[6];
 	size_t newsize = sizeof(new);
 
@@ -64,8 +65,7 @@ static void test_strlcat(void)
 	assert(strlen(new) == 5);
 	assert(strcmp(new, "hiyou") == 0);
 
-
-    // TEST 3 - concatenated final string
+    // concatenated final string
 	char concat[6];
     size_t concatsize = sizeof(concat);
 
@@ -80,22 +80,22 @@ static void test_strlcat(void)
 	assert(strcmp(concat, "hithe") == 0);
 	assert(concat[5] == '\0');
 
-    // TEST 4 - dst not proper string/dst size is wrong
+    // dst size is wrong
 	strlcat(concat, "", 3);
 	assert(strlen(concat) == 5);
 	assert(concat[5] == '\0');
 
-    // TEST 5 - src is empty, dst size is correct
+    // src is empty, dst size is correct
 	strlcat(concat, "", concatsize);
 	assert(strlen(concat) == 5);
 	assert(concat[5] == '\0');
 
-	// TEST 6 - no space in dst
+	// no space in dst
 	strlcat(concat, "m", concatsize);
 	assert(strlen(concat) == 5);
 	assert(concat[5] == '\0');
 
-	// TEST 7 - add two null ptrs
+	// concatenate two null ptrs
 //	char nullptr[3];
 //	size_t nullptrsize = sizeof(nullptr);
 //
@@ -106,7 +106,19 @@ static void test_strlcat(void)
 //	assert(strlen(nullptr) == 0);
 //	assert(strcmp(nullptr, '\0') == 0);
 
-   // Test buf size is 1
+   // Test dstsize is 1
+   char empty[2];
+   empty[0] = '\0';
+   total = strlcat(empty, "Hi", 1);
+   assert(total == 2);
+   assert(strlen(empty) == 0);
+   assert(strcmp(empty, "") == 0);
+
+   // Test dstsize is 0
+   total = strlcat(empty, "Hello", 0);
+   assert(total == 5);
+   assert(strcmp(empty, "") == 0);
+
 }
 
 static void test_strtonum(void)
@@ -266,12 +278,12 @@ static void test_to_base(void)
 	assert(strcmp(buf, "-7e") == 0);
 	assert(n == 3);
 
-    // Zero signed
+    // 0 signed
     n = signed_to_base(buf, bufsize, 0, 16, 0);
 	assert(strcmp(buf, "0") == 0);
 	assert(n == 1);
 
-	// One but calling signed function
+	// 1 but calling signed function
     n = signed_to_base(buf, bufsize, 1, 10, 0);
 	assert(strcmp(buf, "1") == 0);
     assert(n == 1);
@@ -311,12 +323,12 @@ static void test_to_base(void)
 	assert(strcmp(buf, "-") == 0);
 	assert(n == 2);
 
-	// Signed bufsize = 0
+	// Signed, bufsize = 0
 	n = signed_to_base(buf, 0, -1, 10, 0);
 	assert(strcmp(buf, "-") == 0); // buf should be same as before/unchanged
 	assert(n == 0);
 
-	// Signed bufsize = 1 (as bufsize would be 0 for unsigned)
+	// Signed, bufsize = 1 (as bufsize would be 0 for unsigned)
     n = signed_to_base(buf, 1, -1, 10, 0);
 	assert(strcmp(buf, "") == 0);
 	assert(n == 2);
@@ -426,8 +438,15 @@ static void test_snprintf(void)
 	assert(strcmp(buf, "The lazy fox is 00100m away from 0x02000020") == 0);
 	assert(total == strlen(buf));
 
-	// buf size = 1
+	// bufsize = 1
+    total = snprintf(buf, 1, "I'm in y%de%d", 2, 2);
+	assert(strcmp(buf, "") == 0);
+	assert(total == 11);
+
 	// buf size = 0
+	total = snprintf(buf, 0, "Hi, %s", "Aanya");
+	assert(strcmp(buf, "") == 0);
+	assert(total = 9);
 }
 
 // This function just here as code to disassemble for extension

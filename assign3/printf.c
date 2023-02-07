@@ -180,26 +180,17 @@ int signed_to_base(char *buf, size_t bufsize, int val, int base, size_t min_widt
 
 int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 {
-    
-    return 0;
-}
-
-/* This function
- */
-int snprintf(char *buf, size_t bufsize, const char *format, ...)
-{
     int i = 0;
 	int format_i = 0;
 
     char max[1024];
 	size_t maxsize = sizeof(max);
 	memset(max, '\0', maxsize);
-	va_list ap;
-	va_start(ap, format);
+
 	while (format[format_i]) {
 	    if (format[format_i] == '%') { // assumes any % sign always followed by valid code
 		    if (format[format_i + 1] == 'c') {
-				max[i] = va_arg(ap, int);
+				max[i] = va_arg(args, int);
 				max[i+1] = '\0'; // So strlen(max) can be used at end
 			}
 			else if (format[format_i + 1] == '%') {
@@ -208,33 +199,33 @@ int snprintf(char *buf, size_t bufsize, const char *format, ...)
 			}
 			else if (format[format_i + 1] == 's') {
 			    max[i] = '\0';
-				char *str = va_arg(ap, char*);
+				char *str = va_arg(args, char*);
 				strlcat(max, str, maxsize);
 			}
 			else if (format[format_i + 1] == '0') {
 			    const char* letter = NULL;
 				unsigned int min_width = strtonum(format + format_i + 1, &letter);
 				if (*letter == 'd') {
-				    int val = va_arg(ap, int);
+				    int val = va_arg(args, int);
 				    signed_to_base(max + i, maxsize - i, val, 10, min_width);
 				    format_i += int_length(min_width) + 1;
 				}
 			    else if (*letter == 'x') {
-				    int val = va_arg(ap, int);
+				    int val = va_arg(args, int);
 				    signed_to_base(max + i, maxsize - i, val, 16, min_width);
 				    format_i += int_length(min_width) + 1;
 			    }
 			}
 			else if (format[format_i + 1] == 'd') {
-				int val = va_arg(ap, int);
+				int val = va_arg(args, int);
 				signed_to_base(max + i, maxsize - i, val, 10, 0);
 			}
 			else if (format[format_i + 1] == 'x') {
-				int val = va_arg(ap, int);
+				int val = va_arg(args, int);
 				signed_to_base(max + i, maxsize - i, val, 16, 0);
 			}
 			else if (format[format_i + 1] == 'p') {
-				unsigned int val = va_arg(ap, unsigned int);
+				unsigned int val = va_arg(args, unsigned int);
 				max[i] = '0';
 				max[i+1] = 'x';
 				signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 8);
@@ -248,17 +239,103 @@ int snprintf(char *buf, size_t bufsize, const char *format, ...)
 		    format_i++;
 		}
 	}
-	va_end(ap);
+
 	max[i] = '\0';
 	buf[0] = '\0';
 
 	return strlcat(buf, max, bufsize);
 }
 
+int snprintf(char *buf, size_t bufsize, const char *format, ...)
+{
+    va_list args;
+	va_start(args, format);
+	int result = vsnprintf(buf, bufsize, format, args);
+	va_end(args);
+	return result;
+}
+
+
+/* This function
+ */
+//int snprintf(char *buf, size_t bufsize, const char *format, ...)
+//{
+//    int i = 0;
+//	int format_i = 0;
+//
+//    char max[1024];
+//	size_t maxsize = sizeof(max);
+//	memset(max, '\0', maxsize);
+//	va_list ap;
+//	va_start(ap, format);
+//	while (format[format_i]) {
+//	    if (format[format_i] == '%') { // assumes any % sign always followed by valid code
+//		    if (format[format_i + 1] == 'c') {
+//				max[i] = va_arg(ap, int);
+//				max[i+1] = '\0'; // So strlen(max) can be used at end
+//			}
+//			else if (format[format_i + 1] == '%') {
+//				max[i] = '%';
+//				max [i+1] = '\0'; // So strlen(max) can be used at end
+//			}
+//			else if (format[format_i + 1] == 's') {
+//			    max[i] = '\0';
+//				char *str = va_arg(ap, char*);
+//				strlcat(max, str, maxsize);
+//			}
+//			else if (format[format_i + 1] == '0') {
+//			    const char* letter = NULL;
+//				unsigned int min_width = strtonum(format + format_i + 1, &letter);
+//				if (*letter == 'd') {
+//				    int val = va_arg(ap, int);
+//				    signed_to_base(max + i, maxsize - i, val, 10, min_width);
+//				    format_i += int_length(min_width) + 1;
+//				}
+//			    else if (*letter == 'x') {
+//				    int val = va_arg(ap, int);
+//				    signed_to_base(max + i, maxsize - i, val, 16, min_width);
+//				    format_i += int_length(min_width) + 1;
+//			    }
+//			}
+//			else if (format[format_i + 1] == 'd') {
+//				int val = va_arg(ap, int);
+//				signed_to_base(max + i, maxsize - i, val, 10, 0);
+//			}
+//			else if (format[format_i + 1] == 'x') {
+//				int val = va_arg(ap, int);
+//				signed_to_base(max + i, maxsize - i, val, 16, 0);
+//			}
+//			else if (format[format_i + 1] == 'p') {
+//				unsigned int val = va_arg(ap, unsigned int);
+//				max[i] = '0';
+//				max[i+1] = 'x';
+//				signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 8);
+//			}
+//			i = strlen(max);
+//			format_i += 2;
+//		}
+//		else {
+//		    max[i] = format[format_i];
+//		    i++;
+//		    format_i++;
+//		}
+//	}
+//	va_end(ap);
+//	max[i] = '\0';
+//	buf[0] = '\0';
+//
+//	return strlcat(buf, max, bufsize);
+//}
+
 int printf(const char *format, ...)
 {
-    /* TODO: Your code here */
-    return 0;
+    char buf[1024];
+	size_t bufsize = sizeof(buf);
+    va_list args;
+	va_start(args, format);
+	vsnprintf(buf, bufsize, format, args);
+	va_end(args);
+	return uart_putstring(buf);
 }
 
 
