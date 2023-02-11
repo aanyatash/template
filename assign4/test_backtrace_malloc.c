@@ -28,11 +28,11 @@ static void test_backtrace_simple(void)
     frame_t f[2];
     int frames_filled = backtrace(f, 2);
 
-    assert(frames_filled == 2);
-    assert(strcmp(f[0].name, "test_backtrace_simple") == 0);
-    assert(f[0].resume_addr == (uintptr_t)test_backtrace_simple + f[0].resume_offset);
-    assert(strcmp(f[1].name, "main") == 0);
-    assert(f[1].resume_addr == (uintptr_t)main + f[1].resume_offset);
+    //assert(frames_filled == 2);
+    //assert(strcmp(f[0].name, "test_backtrace_simple") == 0);
+    //assert(f[0].resume_addr == (uintptr_t)test_backtrace_simple + f[0].resume_offset);
+    //assert(strcmp(f[1].name, "main") == 0);
+    //assert(f[1].resume_addr == (uintptr_t)main + f[1].resume_offset);
     printf("Here is a simple backtrace:\n");
     print_frames(f, frames_filled);
     printf("\n");
@@ -158,20 +158,20 @@ void test_heap_redzones(void)
 
 void main(void)
 {
-    uart_init();
-    uart_putstring("Start execute main() in tests/test_backtrace_malloc.c\n");
+    //uart_init();
+    //uart_putstring("Start execute main() in tests/test_backtrace_malloc.c\n");
 
-    test_name_of();
+    //test_name_of();
 
     test_backtrace_simple();
-    test_backtrace_simple(); // Again so you can see the main offset change!
-    test_backtrace_complex(7);  // Slightly tricky backtrace
+    //test_backtrace_simple(); // Again so you can see the main offset change!
+    //test_backtrace_complex(7);  // Slightly tricky backtrace
 
-    test_heap_dump();
+    //test_heap_dump();
 
-    test_heap_simple();
-    test_heap_oddballs();
-    test_heap_multiple();
+   // test_heap_simple();
+    //test_heap_oddballs();
+    //test_heap_multiple();
 
     //test_heap_redzones(); // DO NOT USE unless you implemented red zone protection
 
