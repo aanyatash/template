@@ -110,7 +110,7 @@ static void test_split(void) {
 	heap_dump("After adding large, which is malloc(83)");
 	free(large);
 	heap_dump("After freeing large, which is malloc(83)");
-	for (int i = 0; i < 7; i++) {
+	for (int i = 0; i < 10; i++) {
 	    int *small = malloc(8);
 		heap_dump("After small, which is malloc(8)");
 	}
@@ -239,10 +239,10 @@ void main(void)
 
     //test_heap_dump();
 	//test_recyle();
-	//test_split();
+	test_split();
 
     //test_heap_simple();
-	test_coalesce();
+	//test_coalesce();	
     //test_heap_oddballs();
     //test_heap_multiple();
 
