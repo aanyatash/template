@@ -167,9 +167,9 @@ void main(void)
     test_backtrace_simple(); // Again so you can see the main offset change!
     test_backtrace_complex(7);  // Slightly tricky backtrace
 
-    //test_heap_dump();
+    test_heap_dump();
 
-   // test_heap_simple();
+    test_heap_simple();
     //test_heap_oddballs();
     //test_heap_multiple();
 

@@ -42,6 +42,11 @@ static void *heap_end = &__bss_end__;
 // Private global variables to track heap statistics
 static int count_allocs, count_frees, total_bytes_requested;
 
+struct header {
+    size_t payload_size;
+	int status; // 0 if free, 1 if in use
+};
+
 // Call sbrk as needed to extend size of heap segment
 // Use sbrk implementation as given
 void *sbrk(int nbytes)
@@ -67,24 +72,79 @@ void *sbrk(int nbytes)
 
 void *malloc (size_t nbytes)
 {
-    // TODO: replace with your code
     count_allocs++;
     total_bytes_requested += nbytes;
     nbytes = roundup(nbytes, 8);
-    return sbrk(nbytes);
+	struct header add_header;
+
+
+	// iterate through heap from heap_start
+	// look at headers
+	// find header with status 0 or end of heap
+	// if status 0, check if payload size equal to n bytes or greater than nbytes + 16 (enough space for new header and payload)
+	// change status to 1
+	// change payload size
+	// if space remaning is not 0, add new header with status 0 and payload_size at end of block
+
+	struct header *cur_header = (struct header *) heap_start;
+	while (cur_header != heap_end) {
+		if (cur_header->status == 0) {
+		    if (cur_header->payload_size == nbytes || cur_header->payload_size >= nbytes + 16) {
+				cur_header->status = 1;
+				size_t size = cur_header->payload_size;
+				unsigned int remaining = size - nbytes;
+				cur_header->payload_size = nbytes;
+				if (remaining != 0) {
+				    struct header *new_header = cur_header + (size/8) + 1 - remaining/8;
+				    new_header->payload_size = remaining - 8;
+					new_header->status = 0;
+				}
+				return cur_header + 1;
+			}
+		}
+	    cur_header = cur_header + ((cur_header->payload_size)/8) + 1;
+	}
+
+    cur_header = sbrk(nbytes + 8);
+	cur_header->payload_size = nbytes;
+	cur_header->status = 1;
+	return cur_header + 1;
 }
 
 void free (void *ptr)
 {
     count_frees++;
-    // TODO: fill in your own code here
+    if (ptr == NULL) {
+		return;
+	}
+	struct header *header_free = ((struct header *) ptr) - 1;
+	header_free->status = 0;
+    
 }
 
 void heap_dump (const char *label)
 {
     printf("\n---------- HEAP DUMP (%s) ----------\n", label);
     printf("Heap segment at %p - %p\n", heap_start, heap_end);
-    // TODO: fill in your own code here
+	printf("\n");
+    struct header *cur_header = (struct header *) heap_start;
+	char *cur_data;
+	// read header
+	// printf payload which is digit
+	// printf status which is also digit
+	// printf data, if payload > 16, only print 16 -- use while loop to subtract from size
+	while (cur_header != heap_end) {
+		printf("Payload size: %d\n", cur_header->payload_size);
+		printf("Status: %d\n", cur_header->status);
+        int i = 0;
+		cur_data = (char *) (cur_header + 1);
+		while (i < 16 && i < cur_header->payload_size) {
+		    printf("Current data: %c\n", cur_data[i]);
+			i++;
+		}
+		printf("\n");
+		cur_header = cur_header + ((cur_header->payload_size)/8) + 1;
+	}
     printf("----------  END DUMP (%s) ----------\n", label);
     // heap dump and stats should be consistent
     printf("Stats: %d in-use (%d allocs, %d frees), %d total bytes requested\n\n",
