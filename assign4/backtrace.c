@@ -6,7 +6,13 @@
 
 const char *name_of(uintptr_t fn_start_addr)
 {
-    // TODO: Fill in your code here.
+    uintptr_t* name = (unintptr_t *) fn_start_addr;
+    if (((*name >> 24) & 0b11111111) == 0b11111111) {
+		int length = (*name & ~0xff000000);
+		for (int i = length; i > 0; i--) {
+		    
+		}
+	}
     return "???";
 }
 
@@ -24,36 +30,32 @@ int backtrace (frame_t f[], int max_frames)
 	uintptr_t callee_lr = *(cur_fp - 1); // return address in test_simple_backtrace from backtrace lr
 	uintptr_t *caller_fp = (uintptr_t *)new_fp;
 	cur_fp = caller_fp; // for test_simple_backtrace frame
-	printf("Start of callee %x\n", (*cur_fp)-12);
+    
 
     int i = 0;
     while (*(cur_fp - 3) != 0) {
-	    //printf("Function #%d\n", i);
+
+	    uintptr_t name_addr = (*cur_fp) - 24;
+	
 		// points at new frame pointer of caller in current stack frame
 		new_fp = *(cur_fp - 3); // dereferences to address of new pointer
 		caller_fp = (uintptr_t *)new_fp; // creates pointer at this address, the new fp
-		//printf("Start of frame of caller %p\n", caller_fp);
 
 		// resume address points at lr of frame of cur frame
 		uintptr_t caller_lr = *(cur_fp - 1);
-		//printf("lr register of current frame, resume address of caller: 0x%x\n", callee_resume_addr);
 
 		// resume offset = lr of current frame - pc of caller frame (frame above it on the stack) - 12
 		// the return address in backtrace
 		// 
 		int func_called = callee_lr - ((*cur_fp) - 12);
 		//printf("Lines into function %d\n", func_called);
-		current.name = "??? ";
+		current.name = name_of(name_addr);
 		current.resume_addr = callee_lr;
 		current.resume_offset = func_called;
 		f[i] = current;
 		cur_fp = caller_fp;
 		// resume address points at lr of frame of cur frame
 		callee_lr = caller_lr;
-		//printf("lr register of current frame, resume address of caller: 0x%x\n", callee_resume_addr);
-
-		//printf("next fp %p\n", cur_fp);
-		//printf("\n");
 		i++;
     }
     return i;
