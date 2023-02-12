@@ -6,12 +6,12 @@
 
 const char *name_of(uintptr_t fn_start_addr)
 {
-    uintptr_t* name = (unintptr_t *) fn_start_addr;
-    if (((*name >> 24) & 0b11111111) == 0b11111111) {
+    uintptr_t* name = (uintptr_t *) fn_start_addr;
+    if (((*name >> 24) & 0xff) == 0xff) {
 		int length = (*name & ~0xff000000);
-		for (int i = length; i > 0; i--) {
-		    
-		}
+		name = name - (length/4);
+		const char* function_name = (const char*) name;
+		return function_name;
 	}
     return "???";
 }
@@ -35,7 +35,7 @@ int backtrace (frame_t f[], int max_frames)
     int i = 0;
     while (*(cur_fp - 3) != 0) {
 
-	    uintptr_t name_addr = (*cur_fp) - 24;
+	    uintptr_t name_addr = (*cur_fp) - 16;
 	
 		// points at new frame pointer of caller in current stack frame
 		new_fp = *(cur_fp - 3); // dereferences to address of new pointer

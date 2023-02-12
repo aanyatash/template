@@ -29,9 +29,9 @@ static void test_backtrace_simple(void)
     int frames_filled = backtrace(f, 2);
 
     assert(frames_filled == 2);
-    //assert(strcmp(f[0].name, "test_backtrace_simple") == 0);
+    assert(strcmp(f[0].name, "test_backtrace_simple") == 0);
     assert(f[0].resume_addr == (uintptr_t)test_backtrace_simple + f[0].resume_offset);
-    //assert(strcmp(f[1].name, "main") == 0);
+    assert(strcmp(f[1].name, "main") == 0);
     assert(f[1].resume_addr == (uintptr_t)main + f[1].resume_offset);
     printf("Here is a simple backtrace:\n");
     print_frames(f, frames_filled);
