@@ -118,6 +118,21 @@ void free (void *ptr)
 		return;
 	}
 	struct header *header_free = ((struct header *) ptr) - 1;
+	struct header *cur_header = header_free;
+	int payload_to_add = 0;
+    cur_header = cur_header + ((cur_header->payload_size)/8) + 1;
+	while (cur_header != heap_end) {
+		// consider if status == 1, break
+		if (cur_header->status == 1) {
+		    break;
+		}
+        payload_to_add += cur_header->payload_size + 8;
+        cur_header = cur_header + ((cur_header->payload_size)/8) + 1;
+	}
+	header_free->payload_size += payload_to_add;
+	// keep checking next cur_header until reach heap_end or until cur_header->status = 1
+	// counter to add payload_size and header(8) 
+	// this is new payload size 
 	header_free->status = 0;
     
 }
@@ -138,7 +153,7 @@ void heap_dump (const char *label)
 		printf("Status: %d\n", cur_header->status);
         int i = 0;
 		cur_data = (char *) (cur_header + 1);
-		while (i < 16 && i < cur_header->payload_size) {
+		while (i < 16 && i < cur_header->payload_size && cur_data != heap_end) {
 		    printf("Current data: %c\n", cur_data[i]);
 			i++;
 		}

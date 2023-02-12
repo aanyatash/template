@@ -90,7 +90,6 @@ static void test_recyle(void) {
 		b = d;
 	}
 
-
 	// free 32
 	free(b);
 	heap_dump("After free b, which is malloc(32)");
@@ -115,6 +114,30 @@ static void test_split(void) {
 	    int *small = malloc(8);
 		heap_dump("After small, which is malloc(8)");
 	}
+}
+
+static void test_coalesce(void) {
+    // small blocks
+	// free in reverse order
+	// request large block
+    int *small_1 = malloc(4);
+	int *small_2 = malloc(5);
+	int *small_3 = malloc(5);
+	int *small_4 = malloc(16);
+	int *small_5 = malloc(8);
+	free(small_5);
+	heap_dump("After free small 5, which is malloc(8)");
+	free(small_4);
+	heap_dump("After free small 4, which is malloc(16)");
+	free(small_3);
+	heap_dump("After free small 3, which is malloc(5)");
+	free(small_2);
+	heap_dump("After free small 2, which is malloc(5)");
+	free(small_1);
+	heap_dump("After free small 1, which is malloc(4)");
+	int *large_6 = malloc(16);
+	heap_dump("After adding large 6, which is malloc(16)");
+
 }
 
 static void test_heap_simple(void)
@@ -218,7 +241,8 @@ void main(void)
 	//test_recyle();
 	//test_split();
 
-    test_heap_simple();
+    //test_heap_simple();
+	test_coalesce();
     //test_heap_oddballs();
     //test_heap_multiple();
 
