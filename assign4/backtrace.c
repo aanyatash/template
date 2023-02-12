@@ -14,13 +14,13 @@
  * returns it as a pointer to the statring address
  * of the name. If no name is stored, it returns
  * "???". The function takes the starting address
- * of one instruction before the start of of the 
- * the function (<function+0>) as a parameter.
+ * of the start of of the the function (<function+0>) 
+ * as a parameter.
  */
 const char *name_of(uintptr_t fn_start_addr)
 {
     // Pointer to the start address of where the name is stored
-    uintptr_t* name = (uintptr_t *) fn_start_addr;
+    uintptr_t* name = (uintptr_t *) (fn_start_addr - 4);
     if (((*name >> 24) & 0xff) == 0xff) { // Check is MSB is 0xFF, as this signifies name storage
 		int length = (*name & ~0xff000000); // Find length of name of function
 		name = name - (length/4); // Pointer arithmetic to find starting address of function_name
@@ -57,9 +57,9 @@ int backtrace (frame_t f[], int max_frames)
     int i = 0;
     while (*(cur_fp - 3) != 0 && i != max_frames) { // Iterate until top of stack reached (stop at cstart frame)
 
-        // The address of the name of the function is stored 16 bytes before the stored pc value in
+        // The start of the function is stored 12 bytes before the stored pc value in
 		// the stack frame
-	    name_addr = (*cur_fp) - 16;
+	    name_addr = (*cur_fp) - 12;
 	
 		// Points at frame pointer of caller of function in current stack frame
 		new_fp = *(cur_fp - 3); // dereferences to address of new pointer
@@ -87,7 +87,7 @@ int backtrace (frame_t f[], int max_frames)
 
     if (i != max_frames) {
 		// For _cstart frame
-		name_addr = (*cur_fp) - 16;
+		name_addr = (*cur_fp) - 12;
 		func_called = callee_lr - ((*cur_fp) - 12);
 		current.name = name_of(name_addr);
 		current.resume_addr = callee_lr;

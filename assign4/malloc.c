@@ -170,12 +170,16 @@ void heap_dump (const char *label)
 		printf("Status: %d\n", cur_header->status);
         int i = 0;
 		cur_data = (char *) (cur_header + 1);
-		// Print data stored with cur_header. Prints a mx of 16 bytes.
+		// Print data stored with cur_header. Prints a max of 16 bytes.
 		while (i < 16 && i < cur_header->payload_size && cur_data != heap_end) {
 		    printf("Current data: %c\n", cur_data[i]);
 			i++;
 		}
 		printf("\n");
+		if (cur_data == heap_end) {
+		    printf("HEAP END");
+		    break;
+		}
 		// Math to move to next header, as all headers form an implicit list
 		cur_header = cur_header + ((cur_header->payload_size)/8) + 1;
 	}

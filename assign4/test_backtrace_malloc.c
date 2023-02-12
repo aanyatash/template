@@ -38,6 +38,35 @@ static void test_backtrace_simple(void)
     printf("\n");
 }
 
+
+// Testing backtrace - main should look reasonable compared to other functions
+// cstart is the same
+
+static unsigned int factorial(int c) {
+		if (c == 1) {
+		    printf("\n");
+		    print_backtrace(); // should have diff, factorial and recursion_backtrace frames
+		    return 1;
+		}
+		return 1 * factorial(c-1);
+}
+
+static int diff(int a, int b) {
+		return factorial (b - a);
+}
+
+static void test_more_recursion(void) {
+		print_backtrace(); // should only print four frames as recursive functions have been popped
+}
+
+static void recursion_backtrace(void) {    
+		int a = 1;
+		int b = 5;
+		diff(a, b);
+	    printf("\n");
+        test_more_recursion();
+}
+
 static int recursion_fun(int n)
 {
     if (n == 0)
@@ -50,6 +79,10 @@ static int test_backtrace_complex(int n)
 {
     return recursion_fun(n);
 }
+
+
+// MALLOC TEST CASES SHOULD BE RUN INDIVIDUALLY TO BE ABLE TO TRACK
+// INTENDED OUTPUT
 
 static void test_heap_dump(void)
 {
@@ -71,6 +104,10 @@ static void test_heap_dump(void)
 }
 
 static void test_recyle(void) {
+
+    // Tests how blocks are being recycled
+	// Middle one is freed and newly allocated
+	// blocks should take its space if they're small enough
 
     // allocate 16
     int *a = malloc(16);
@@ -103,22 +140,59 @@ static void test_recyle(void) {
 	int *g = malloc(8);
 	heap_dump("After g = malloc(8), should add to after f");
 
+    free(g);
+	free(f);
+	free(e);
+	free(c);
+	free(a);
+	heap_dump("Everything freed");
+
 }
 
 static void test_split(void) {
+
+    // Testing to see how large free block is being split
+	// to add smaller new blocks at beginning of stack
     int *large = malloc(83);
 	heap_dump("After adding large, which is malloc(83)");
 	free(large);
 	heap_dump("After freeing large, which is malloc(83)");
-	for (int i = 0; i < 10; i++) {
-	    int *small = malloc(8);
-		heap_dump("After small, which is malloc(8)");
-	}
+    int *small_1 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+    int *small_2 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+    int *small_3 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+    int *small_4 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+    int *small_5 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+    int *small_6 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+    int *small_7 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+    int *small_8 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+    int *small_9 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+    int *small_10 = malloc(8);
+    heap_dump("After small, which is malloc(8)");
+	free(small_1);
+	free(small_2);
+	free(small_3);
+	free(small_4);
+	free(small_5);
+	free(small_6);
+	free(small_7);
+	free(small_8);
+	free(small_9);
+    free(small_10);
 }
 
 static void test_coalesce(void) {
-    // small blocks
-	// free in reverse order
+
+    // allocate small blocks
+	// free in reverse order to monitor coalescing
 	// request large block
     int *small_1 = malloc(4);
 	int *small_2 = malloc(5);
@@ -137,7 +211,7 @@ static void test_coalesce(void) {
 	heap_dump("After free small 1, which is malloc(4)");
 	int *large_6 = malloc(16);
 	heap_dump("After adding large 6, which is malloc(16)");
-
+    free(large_6);
 }
 
 static void test_heap_simple(void)
@@ -172,6 +246,7 @@ static void test_heap_oddballs(void)
     heap_dump("After reject too-large request");
 
     ptr = malloc(0); // legal request, though weird
+	assert(ptr == NULL);
     heap_dump("After malloc(0)");
     free(ptr);
 
@@ -233,12 +308,13 @@ void main(void)
 
     //test_name_of();
 
-    test_backtrace_simple();
-    test_backtrace_simple(); // Again so you can see the main offset change!
-    test_backtrace_complex(7);  // Slightly tricky backtrace
+    //test_backtrace_simple();
+    //test_backtrace_simple(); // Again so you can see the main offset change!
+    //test_backtrace_complex(7);  // Slightly tricky backtrace
+    //recursion_backtrace(); // tricky backtrace
 
     //test_heap_dump();
-	//test_recyle();
+	test_recyle();
 	test_split();
 
     //test_heap_simple();
