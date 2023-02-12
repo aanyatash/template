@@ -70,6 +70,53 @@ static void test_heap_dump(void)
     heap_dump("After free(q)");
 }
 
+static void test_recyle(void) {
+
+    // allocate 16
+    int *a = malloc(16);
+	// allocate 32
+	int *b = malloc(32);
+	// allocate 16
+    int *c = malloc(16);
+
+	// loop through three times
+	for (int i = 0; i < 3; i ++) {
+	    // free middle
+		free(b);
+	    heap_dump("After free(b), which is malloc(32)");
+	    // allocate 32
+		int *d = malloc(32);
+        heap_dump("After d = malloc(32), should take place of b space");
+		b = d;
+	}
+
+
+	// free 32
+	free(b);
+	heap_dump("After free b, which is malloc(32)");
+	// allocate 24 - should add to end
+	int *e = malloc(24);
+	heap_dump("After e = malloc(24), should add to end");
+	// allocate 16 - should add to middle
+	int *f = malloc(16);
+	heap_dump("After f = malloc(16), should add to where b was, new header after e");
+	// allocate 8 - should add to middle
+	int *g = malloc(8);
+	heap_dump("After g = malloc(8), should add to after f");
+
+}
+
+static void test_split(void) {
+    int *large = malloc(83);
+	heap_dump("After adding large, which is malloc(83)");
+	free(large);
+	heap_dump("After freeing large, which is malloc(83)");
+	for (int i = 0; i < 7; i++) {
+	    int *small = malloc(8);
+		heap_dump("After small, which is malloc(8)");
+	}
+}
+
 static void test_heap_simple(void)
 {
     // allocate a string and array of ints
@@ -167,7 +214,9 @@ void main(void)
     test_backtrace_simple(); // Again so you can see the main offset change!
     test_backtrace_complex(7);  // Slightly tricky backtrace
 
-    test_heap_dump();
+    //test_heap_dump();
+	//test_recyle();
+	//test_split();
 
     test_heap_simple();
     //test_heap_oddballs();
