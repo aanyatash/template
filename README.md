@@ -16,6 +16,8 @@
 - Submission is on/before duedate
 - Extension submitted on/before duedate
 ### Code Review
+- Style: __+__
+- Tests: __+__
 - Grader review comments on [pull request](https://github.com/cs107e/winter22-aanyatash/pull/3)
 ### Test Results
 - Clock application: __3/3__
