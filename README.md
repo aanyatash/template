@@ -28,3 +28,17 @@
 ### Extension
 - Extension Set time: __Complete__
 -----
+## assign3
+### Timeliness
+- `assign3-submit` tag @ Tue 2/7 15:59 __on/before duedate__ 
+- `assign3-extension` tag not found
+### Code Review
+- Style: __ungraded__
+- Tests: __ungraded__
+- Grader review comments on [pull request](https://github.com/cs107e/winter22-aanyatash/pull/3)
+### Test Results
+- Unit tests (P1): __7/8__
+- Unit tests (P2): __2/4__
+- Unit tests (P3): __2/2__
+- 3 failed unit tests available for revise and resubmit. See issues here: [assign3 issues](https://github.com/cs107e/winter22-aanyatash/milestone/2)
+-----
