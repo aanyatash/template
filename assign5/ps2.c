@@ -56,21 +56,35 @@ unsigned char ps2_read(ps2_device_t *dev)
 	// lectures or lab handout on how to wait for a falling edge.
     while (1) {
 	    unsigned int number = 0;
+		unsigned int parity = 0;
+		unsigned int bit = 0;
 		while (1) {
 		    wait_for_falling_clock_edge(dev->clock);
-			if (dev->data == 0) {
+			if (gpio_read(dev->data) == 0) {
 				break;
 			}
 		}
-		for (int i = 1; i < 11; i++) {
+		for (int i = 0; i < 10; i++) {
 		    wait_for_falling_clock_edge(dev->clock);
-			if (i <= 8) {
-				number += (gpio_read(dev->data) ? 1 : 0) * 2 * i;
+			if (i < 8) {
+			    bit = (gpio_read(dev->data) ? 1 : 0);
+				parity += bit;
+				number += bit << i;
+			}
+			if (i == 8) {
+			    parity += (gpio_read(dev->data) ? 1 : 0);
+				if (parity % 2 == 0) {
+				    break;
+				}
+			}
+			if (i == 9) {
+				if (gpio_read(dev->data) == 1) {
+				    return number;
+				}
 			}
 		}
-		printf("[%02x]", number);
-        //if (number == ESC_SCANCODE) break;	}
     }
     return 0xFF;
 }
+
 
