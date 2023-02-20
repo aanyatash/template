@@ -66,7 +66,7 @@ key_event_t keyboard_read_event(void)
 		}
 
 		// alt - 0x11
-		if (read.keycode == 0x11) {
+		else if (read.keycode == 0x11) {
 		    if (read.what == KEY_PRESS) {
 			    modifier = modifier | KEYBOARD_MOD_ALT;
 		    } 
@@ -76,7 +76,7 @@ key_event_t keyboard_read_event(void)
 		}
 
 		// ctrl
-		if (read.keycode == 0x14) {
+		else if (read.keycode == 0x14) {
 		    if (read.what == KEY_PRESS) {
 			    modifier = modifier | KEYBOARD_MOD_CTRL;
 		    }
@@ -86,7 +86,7 @@ key_event_t keyboard_read_event(void)
 		}
 
 		// caps lock
-		if (read.keycode == 0x58 && read.what == KEY_PRESS) {
+		else if (read.keycode == 0x58 && read.what == KEY_PRESS) {
 		    // caps lock on check right shift 3 and then & with 1
 		    if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == 0) {
 		 	    modifier = modifier | KEYBOARD_MOD_CAPS_LOCK;
@@ -99,7 +99,7 @@ key_event_t keyboard_read_event(void)
 
 	}
     
-	//out of while loop
+	//out of while loop, only returns event when it's a non-modifier key
 	event.action = read;
 	event.key = ps2_keys[read.keycode];
 	event.modifiers = modifier;
@@ -108,6 +108,26 @@ key_event_t keyboard_read_event(void)
 
 unsigned char keyboard_read_next(void)
 {
-    // TODO: Your code here
-    return '!';
+    key_event_t read = keyboard_read_event();
+	ps2_key_t character = read.key;
+	key_action_t press = read.action;
+	while (press.what == KEY_RELEASE) {
+		read = keyboard_read_event();
+	    character = read.key;
+		press = read.action;
+	}
+    if ((read.modifiers & KEYBOARD_MOD_SHIFT) == KEYBOARD_MOD_SHIFT) {
+		return character.other_ch;
+    }
+    if ((read.modifiers & KEYBOARD_MOD_CAPS_LOCK) == KEYBOARD_MOD_CAPS_LOCK) {
+	    if (character.ch >= 97 || character.ch <= 122) {
+		    return character.other_ch;
+	    }
+    }
+
+	// if key is above 0x90 or no modifiers, return the ascii value
+	// if shift pressed, return keys[1]
+	// if caps pressed and keys[0] between ascii values 0 through z
+    return character.ch;
+
 }
