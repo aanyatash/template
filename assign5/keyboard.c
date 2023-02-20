@@ -15,8 +15,31 @@ unsigned char keyboard_read_scancode(void)
 
 key_action_t keyboard_read_sequence(void)
 {
-    // TODO: Your code here
     key_action_t action = { 0 };
+	unsigned char first_read = keyboard_read_scancode();
+    // if f0, read second, key release, and store one after
+	if (first_read == 0xf0) {
+		action.what = KEY_RELEASE;
+		action.keycode = keyboard_read_scancode();
+	}
+	else if (first_read == 0xe0) {
+	    unsigned char second_read = keyboard_read_scancode();
+	    if (second_read == 0xf0) {
+		    action.what = KEY_RELEASE;
+     		action.keycode = keyboard_read_scancode();
+
+		}
+		else {
+		    action.what = KEY_PRESS;
+		    action.keycode = second_read;
+		}
+	}
+    else {
+		action.what = KEY_PRESS;
+		action.keycode = first_read;
+	}
+	// if e0, read one after, key press - if e0, f0, read after, release
+	// key press, scancode
     return action;
 }
 

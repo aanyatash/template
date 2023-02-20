@@ -120,8 +120,8 @@ void main(void)
     test_keyboard_scancodes();
     timer_delay_ms(500);
 
-    //test_keyboard_sequences();
-    //timer_delay_ms(500);
+    test_keyboard_sequences();
+    timer_delay_ms(500);
 
     //test_keyboard_events();
     //timer_delay_ms(500);
