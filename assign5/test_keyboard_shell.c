@@ -76,7 +76,7 @@ static void test_shell_evaluate(void)
 // next character, returns char from a fixed string, advances index
 static unsigned char read_fixed(void)
 {
-    const char *input = "echo hello, world\nhelp\n";
+    const char *input = "echo hello, wo\b\bworld\nhelp\n";
     static int index;
 
     char next = input[index];
@@ -117,24 +117,24 @@ void main(void)
 
     printf("Testing keyboard and shell.\n");
 
-    //test_keyboard_scancodes();
-    //timer_delay_ms(500);
+    test_keyboard_scancodes();
+    timer_delay_ms(500);
 
     //test_keyboard_sequences();
     //timer_delay_ms(500);
 
-    //test_keyboard_events();
+    //test_keyboard_events(); // CHECK ESC
     //timer_delay_ms(500);
 
-    test_keyboard_chars();
+    //test_keyboard_chars();
 
-    test_keyboard_assert();
+    //test_keyboard_assert();
 
     //test_shell_evaluate();
 
-    //test_shell_readline_fixed_input();
+    test_shell_readline_fixed_input();
 
-    //test_shell_readline_keyboard();
+    test_shell_readline_keyboard();
 
     printf("All done!\n");
     uart_putchar(EOT);

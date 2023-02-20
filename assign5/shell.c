@@ -1,6 +1,7 @@
 #include "shell.h"
 #include "shell_commands.h"
 #include "uart.h"
+#include "printf.h"
 
 #define LINE_LEN 80
 
@@ -55,7 +56,48 @@ void shell_bell(void)
 
 void shell_readline(char buf[], size_t bufsize)
 {
-    // TODO: your code here
+    // can't be more than bufsize - 1
+	// can't backspace if new line or nothing to backspace - use shell_bell
+	int i = 0;
+	buf[0] = '\0';
+	unsigned char (*read)(void) = shell_read; // this is pointing to the function
+	int (*output)(const char *format, ...) = shell_printf;
+	// we only want to call the function once and store it somewhere
+	unsigned char character = read();
+	while (character != '\n') { // calling the function dereferences it
+		while (i == bufsize - 1) {
+		    shell_bell();
+		    character = read();
+			if (character == '\b') {
+				break;
+			}
+			if (character == '\n') {
+				buf[i] = '\0';
+				output("%c", '\n');
+				return;
+			}
+		}
+		if (character == '\b') {
+		    if (i == 0) {
+				shell_bell();
+			}
+		    else {
+			    output("%c %c", '\b', '\b');
+				i = i - 1;
+				buf[i] = '\0';
+				output(buf+i);
+			}
+		}
+		else {
+	        buf[i] = character;
+			buf[i+1] = '\0';
+			output(buf+i);
+		    i++;
+		}
+		character = read();
+	}
+	buf[i] = '\0';
+	output("%c", '\n');
 }
 
 int shell_evaluate(const char *line)
