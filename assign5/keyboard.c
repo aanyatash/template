@@ -2,6 +2,7 @@
 #include "ps2.h"
 
 static ps2_device_t *dev;
+static unsigned int modifier = 0;
 
 void keyboard_init(unsigned int clock_gpio, unsigned int data_gpio)
 {
@@ -45,8 +46,63 @@ key_action_t keyboard_read_sequence(void)
 
 key_event_t keyboard_read_event(void)
 {
-    // TODO: Your code here
     key_event_t event = { 0 };
+	key_action_t read = keyboard_read_sequence();
+	// action
+	// key - ch and other_ch - ps2_keys[hex]
+	// modifiers
+    // keep reading sequence until not one of the modifier keys
+	// shift
+	while (read.keycode == 0x12 || read.keycode == 0x59 || read.keycode == 0x11 || 
+				read.keycode == 0x14 || read.keycode == 0x58) {
+		// add shift to active modifiers
+		if (read.keycode == 0x12 || read.keycode == 0x59) {
+		    if (read.what == KEY_PRESS) {
+			    modifier = modifier | KEYBOARD_MOD_SHIFT;
+		    }
+		    else if (read.what == KEY_RELEASE) {
+			    modifier = modifier & ~KEYBOARD_MOD_SHIFT;
+		    }
+		}
+
+		// alt - 0x11
+		if (read.keycode == 0x11) {
+		    if (read.what == KEY_PRESS) {
+			    modifier = modifier | KEYBOARD_MOD_ALT;
+		    } 
+		    else if (read.what == KEY_RELEASE) {
+			    modifier = modifier & ~KEYBOARD_MOD_ALT;
+		    }
+		}
+
+		// ctrl
+		if (read.keycode == 0x14) {
+		    if (read.what == KEY_PRESS) {
+			    modifier = modifier | KEYBOARD_MOD_CTRL;
+		    }
+		    else if (read.what == KEY_RELEASE) {
+			    modifier = modifier & ~KEYBOARD_MOD_CTRL;
+		    }
+		}
+
+		// caps lock
+		if (read.keycode == 0x58 && read.what == KEY_PRESS) {
+		    // caps lock on check right shift 3 and then & with 1
+		    if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == 0) {
+		 	    modifier = modifier | KEYBOARD_MOD_CAPS_LOCK;
+		    }
+		    else if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == KEYBOARD_MOD_CAPS_LOCK) {
+			    modifier = modifier & ~KEYBOARD_MOD_CAPS_LOCK;
+		    }
+		}
+		read = keyboard_read_sequence();
+
+	}
+    
+	//out of while loop
+	event.action = read;
+	event.key = ps2_keys[read.keycode];
+	event.modifiers = modifier;
     return event;
 }
 
