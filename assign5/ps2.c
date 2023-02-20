@@ -2,6 +2,8 @@
 #include "gpio_extra.h"
 #include "malloc.h"
 #include "ps2.h"
+#include "uart.h"
+#include "printf.h"
 
 // A ps2_device is a structure that stores all of the state and information
 // needed for a PS2 device. The clock field stores the pin number for the
@@ -37,15 +39,38 @@ ps2_device_t *ps2_new(unsigned int clock_gpio, unsigned int data_gpio)
     return dev;
 }
 
-// Read a single PS2 scan code. Always returns a correctly received scan code:
+void wait_for_falling_clock_edge(unsigned int clk)
+{
+    while(gpio_read(clk) == 0) {}
+    while(gpio_read(clk) == 1) {}
+}
+
+// read a single ps2 scan code. always returns a correctly received scan code:
 // if an error occurs (e.g., start bit not detected, parity is wrong), the
 // function should read another scan code.
 unsigned char ps2_read(ps2_device_t *dev)
 {
-    // TODO: Implement this function during lab5
-    // Writing a separate helper function read_bit() is highly
-    // recommended: this function waits for a clock falling
-    // edge then reads the data pin. Refer to the Keyboard
-    // lectures or lab handout on how to wait for a falling edge.
+	// writing a separate helper function read_bit() is highly
+	// recommended: this function waits for a clock falling
+	// edge then reads the data pin. refer to the keyboard
+	// lectures or lab handout on how to wait for a falling edge.
+    while (1) {
+	    unsigned int number = 0;
+		while (1) {
+		    wait_for_falling_clock_edge(dev->clock);
+			if (dev->data == 0) {
+				break;
+			}
+		}
+		for (int i = 1; i < 11; i++) {
+		    wait_for_falling_clock_edge(dev->clock);
+			if (i <= 8) {
+				number += (gpio_read(dev->data) ? 1 : 0) * 2 * i;
+			}
+		}
+		printf("[%02x]", number);
+        //if (number == ESC_SCANCODE) break;	}
+    }
     return 0xFF;
 }
+
