@@ -96,79 +96,101 @@ static void test_shell_evaluate(void)
 
     printf("\nTest shell_evaluate on fixed commands.\n");
 
+    // Test echo
     int ret = shell_evaluate("echo hello, world!");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Test help cmd
 	ret = shell_evaluate("help echo");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Test help
 	ret = shell_evaluate("help");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Test help with trailing space
+	ret = shell_evaluate("help ");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+    // Test leading space
+	ret = shell_evaluate("	help");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+    // Test invalid command
 	ret = shell_evaluate("help hi");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Test peek example given in spec
 	ret = shell_evaluate("peek 0x8000");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Test peek with no arguments
 	ret = shell_evaluate("peek");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Peek with invalid address
 	ret = shell_evaluate("peek bob");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Peek, not 4-byte aligned
 	ret = shell_evaluate("peek 7");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Test poke at start address, use peek to confirm successful poke
 	ret = shell_evaluate("poke 0x8000 1");
     printf("Command result is zero if successful, is it? %d\n", ret);
-
 	ret = shell_evaluate("peek 0x8000");
     printf("Command result is zero if successful, is it? %d\n", ret);
-
+ 
+    // Change the value at previous poke to 0 - shouldn't work as 0 is invalid
+	// Use peek to confirm failure
 	ret = shell_evaluate("poke 0x8000 0");
     printf("Command result is zero if successful, is it? %d\n", ret);
-
 	ret = shell_evaluate("peek 0x8000");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Test not enough arguments for poke
 	ret = shell_evaluate("poke 0x8000");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Invalid value for poke
 	ret = shell_evaluate("poke 0x8000 wilma");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Invalid adress for poke
 	ret = shell_evaluate("poke bob 3");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Address not 4-byte aligned for poke
 	ret = shell_evaluate("poke 11 0");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
-    printf("pin 47 %d\n", gpio_read(GPIO_PIN47));
-	ret = shell_evaluate("peek 0x20200010");
-
+    // Set GPIO pin 47 (ACT LED) to output with FSEL register
+    printf("FSEL register: pin 47 %d\n", gpio_read(GPIO_PIN47));
+	ret = shell_evaluate("peek 0x20200010"); // check address before
 	ret = shell_evaluate("poke 0x20200010 0x200000");  // fsel register
+	ret = shell_evaluate("peek 0x20200010"); // check address after
     printf("Command result is zero if successful, is it? %d\n", ret);
-	ret = shell_evaluate("peek 0x20200038");
 
-	printf("new pin 47 %d\n", gpio_read(GPIO_PIN47));
-	
-	ret = shell_evaluate("poke 0x20200020 0x8000"); // this sets gpio pin 31 to high 
+    // Set GPIO pin 47 to high with SET 1 register
+	ret = shell_evaluate("peek 0x20200038"); // Read LEV 1 register to check value before
+	printf("After poke SET register pin 47: %d\n", gpio_read(GPIO_PIN47));
+	ret = shell_evaluate("poke 0x20200020 0x8000"); // this sets gpio pin 47 to high 
     printf("Command result is zero if successful, is it? %d\n", ret);
-	ret = shell_evaluate("peek 0x20200038");
+	ret = shell_evaluate("peek 0x20200038"); // Read LEV 1 register to check value after
 
+	timer_delay_ms(1000); // delay, so we can observe green light on
 
+    // Set GPIO pin 47 to low with CLR 1 register
 	printf("new pin 47 %d\n", gpio_read(GPIO_PIN47));
-
-
 	ret = shell_evaluate("poke 0x2020002C 0x8000");
     printf("Command result is zero if successful, is it? %d\n", ret);
-	ret = shell_evaluate("peek 0x20200038");
+	ret = shell_evaluate("peek 0x20200038"); // Read LEV 1 reg to confirm back to original val
+	printf("After poke CLR resister, pin 47: %d\n", gpio_read(GPIO_PIN47));
 
+	timer_delay_ms(1000); // delay, so we can observe green light off
 
-	printf("final pin 47 %d\n", gpio_read(GPIO_PIN47));
-
-
+    // Test reboot command
     ret = shell_evaluate("reboot hello, world!");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
@@ -178,7 +200,7 @@ static void test_shell_evaluate(void)
 // next character, returns char from a fixed string, advances index
 static unsigned char read_fixed(void)
 {
-    const char *input = "echo hello, wo\b\bworld\nhelp\n";
+    const char *input = "echo hello, wo\b\bworld\nhelp\n    spaces\n    \n";
     static int index;
 
     char next = input[index];
@@ -198,6 +220,10 @@ static void test_shell_readline_fixed_input(void)
     shell_readline(buf, bufsize);
     printf("readline> ");
     shell_readline(buf, bufsize);
+    printf("readline> ");
+    shell_readline(buf, bufsize);
+    printf("readline> ");
+    shell_readline(buf, bufsize);
 }
 
 static void test_shell_readline_keyboard(void)
@@ -210,6 +236,10 @@ static void test_shell_readline_keyboard(void)
     printf("\nTest shell_readline, type a line of input on ps2 keyboard.\n");
     printf("? ");
     shell_readline(buf, bufsize);
+
+
+	/* Here, I tested inputs that were too big"
+	 */
 }
 
 void main(void)
@@ -219,20 +249,20 @@ void main(void)
 
     printf("Testing keyboard and shell.\n");
 
-    test_keyboard_scancodes();
-    timer_delay_ms(500);
+    //test_keyboard_scancodes();
+    //timer_delay_ms(500);
 
-    test_keyboard_sequences();
-    timer_delay_ms(500);
+    //test_keyboard_sequences();
+    //timer_delay_ms(500);
 
-    test_keyboard_events(); // CHECK ESC
-    timer_delay_ms(500);
+    //test_keyboard_events();
+    //timer_delay_ms(500);
 
-    test_keyboard_chars();
+    //test_keyboard_chars();
 
-    test_keyboard_assert();
+    //test_keyboard_assert();
 
-    //test_shell_evaluate();
+    test_shell_evaluate();
 
    // test_shell_readline_fixed_input();
 
