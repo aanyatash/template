@@ -1,3 +1,10 @@
+/* Name: Aanya Tashfeen
+ * Filename: "ps2.c"
+ * This file contains code that initializes the keyboard and then reads the data and clock
+ * to identify the key presses. The file also uses the parity, stop, and start bit obtained from data
+ * as an error-correcting code.
+ */
+
 #include "gpio.h"
 #include "gpio_extra.h"
 #include "malloc.h"
