@@ -10,6 +10,8 @@
 static input_fn_t shell_read;
 static formatted_fn_t shell_printf;
 
+static unsigned int commands_size = 5;
+
 // NOTE TO STUDENTS:
 // Your shell commands output various information and respond to user
 // error with helpful messages. The specific wording and format of
@@ -28,6 +30,9 @@ static formatted_fn_t shell_printf;
 static const command_t commands[] = {
     {"help", "help [cmd]",  "print command usage and description", cmd_help},
     {"echo", "echo [args]", "print arguments", cmd_echo},
+	{"reboot", "reboot", "reboot the Raspberry Pi", cmd_reboot}//,
+//	{"peek", "peek [addr]", "print contents of memory at address", cmd_peek},
+//	{"poke", "poke [addr] [val]", "store value into memory at address", cmd_poke}
 };
 
 int cmd_echo(int argc, const char *argv[])
@@ -40,9 +45,31 @@ int cmd_echo(int argc, const char *argv[])
 
 int cmd_help(int argc, const char *argv[])
 {
-    // TODO: your code here
-    (void)commands; // to quiet compiler warning before you have implemented this function
-    return 0;
+    // iterate thorugh commands to find string matched with argv[1]
+	for (int i = 0; i < commands_size; i++) {
+	    if (argc == 1) {
+		    shell_printf("Usage: %s\n", commands[i].usage);
+			shell_printf("Description: %s\n", commands[i].description);
+			if (i == commands_size - 1) {
+				return 0;
+			}
+		}
+		else if (strcmp(argv[1], commands[i].name) == 0) {
+		    shell_printf("Usage: %s\n", commands[i].usage);
+			shell_printf("Description: %s\n", commands[i].description);
+			return 0;
+		}
+	}
+
+    shell_printf("error: no such command '%s'\n", argv[1]);
+    return -1;
+}
+
+int cmd_reboot(int argc, const char *argv[]) {
+    shell_printf("Rebooting Pi, see ya at the bootloader!");
+    uart_putchar(EOT);
+	return 0;
+    //pi_reboot();
 }
 
 void shell_init(input_fn_t read_fn, formatted_fn_t print_fn)
@@ -140,16 +167,11 @@ int shell_evaluate(const char *line)
 	}
 	int tokens_size = i;
 	//tokens[i][j] = '\0';
-    printf("%s\n", tokens[0]);
-	printf("%s\n", tokens[1]);
-	printf("%s\n", tokens[2]);
-	for (int i = 0; i < sizeof(commands); i++) {
+
+	for (int i = 0; i < commands_size; i++) {
 		if (strcmp(tokens[0], commands[i].name) == 0) {
-		    break;
-		}
-		if (i == sizeof(commands) - 1) {
-		    printf("error: no such command '%s'.\n", tokens[0]);
-		    return -1;
+		    int (*function)(int argc, const char *argv[]) = commands[i].fn;
+	        return function(tokens_size,(const char**) tokens);
 		}
 	}
     
@@ -158,9 +180,10 @@ int shell_evaluate(const char *line)
     // array of tokens
 	// no ' ', '\t', '\n'
 	// first token is command
-    int (*function)(int argc, const char *argv[]) = commands[i].fn;
-	//command_fn_t = tokens[0];
-    return function(tokens_size, (const char**) tokens);
+    //return result;
+	shell_printf("error: no such command '%s'.\n", tokens[0]);
+    return -1;
+
 }
 
 

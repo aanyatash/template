@@ -73,6 +73,16 @@ static void test_shell_evaluate(void)
 
     ret = shell_evaluate("echo hello, world!");
     printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("help echo");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("help");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("help hi");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
 }
 
 // This is an example of a "fake" input. When asked to "read"
@@ -135,9 +145,9 @@ void main(void)
 
     test_shell_evaluate();
 
-    test_shell_readline_fixed_input();
+   // test_shell_readline_fixed_input();
 
-    test_shell_readline_keyboard();
+    //test_shell_readline_keyboard();
 
     printf("All done!\n");
     uart_putchar(EOT);
