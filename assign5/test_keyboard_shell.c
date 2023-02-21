@@ -120,6 +120,10 @@ static void test_shell_evaluate(void)
 	ret = shell_evaluate("help hi");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+    // Test more than one command
+	ret = shell_evaluate("help echo help");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
     // Test peek example given in spec
 	ret = shell_evaluate("peek 0x8000");
     printf("Command result is zero if successful, is it? %d\n", ret);
@@ -200,7 +204,7 @@ static void test_shell_evaluate(void)
 // next character, returns char from a fixed string, advances index
 static unsigned char read_fixed(void)
 {
-    const char *input = "echo hello, wo\b\bworld\nhelp\n    spaces\n    \n";
+    const char *input = "echo hello, wo\b\bworld\nhelp\n    spaces\n    \nthis input should be wayyyyyyyyyy too big, and so it really should call shell bell and give a proper warning!!!!\n";
     static int index;
 
     char next = input[index];
@@ -224,6 +228,9 @@ static void test_shell_readline_fixed_input(void)
     shell_readline(buf, bufsize);
     printf("readline> ");
     shell_readline(buf, bufsize);
+    printf("readline> ");
+    shell_readline(buf, bufsize);
+
 }
 
 static void test_shell_readline_keyboard(void)
@@ -238,9 +245,16 @@ static void test_shell_readline_keyboard(void)
     shell_readline(buf, bufsize);
 
 
-	/* Here, I tested inputs that were too big"
+	/* Here, I tested inputs that were too big to ensure correct shell_bell. I also tried
+	 * backspacing into nothing to ensure it called shell bell and did nothing. I tried hitting
+	 * enter on an empty line which worked.
 	 */
 }
+
+/* I used make run to test shell. Here, I tested typing in nothing, typing in only spaces,
+ * adding leading whitespces/tabs and trailing whitespaces tabs before all commands. I tested
+ * typing multiple arguments after a command and not enough.
+ */
 
 void main(void)
 {
@@ -264,7 +278,7 @@ void main(void)
 
     test_shell_evaluate();
 
-   // test_shell_readline_fixed_input();
+    //test_shell_readline_fixed_input();
 
     //test_shell_readline_keyboard();
 
