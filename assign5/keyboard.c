@@ -70,90 +70,124 @@ key_action_t keyboard_read_sequence(void)
     return action;
 }
 
+/* This function provides a mid level keybaord interface. The function reads
+ * and blocks the next key event. It returns a key_event_t struct that represents
+ * the key event. A key event is a rpess or release of a single key. The returned
+ * struct also includes the ps2 key that was pressed or releases and the keyboard
+ * modifiers in effect. Modifier keys don't generate events, they simply update a 
+ * modifer variable that can track active modifiers.
+ */
 key_event_t keyboard_read_event(void)
 {
     key_event_t event = { 0 };
+	// Determines action
 	key_action_t read = keyboard_read_sequence();
-	// action
-	// key - ch and other_ch - ps2_keys[hex]
-	// modifiers
-    // keep reading sequence until not one of the modifier keys
-	// shift
+
+    // Keeps reading sequence of keys pressed until a non-modifier key is 
+	// pressed, so it can generate an event
 	while (read.keycode == 0x12 || read.keycode == 0x59 || read.keycode == 0x11 || 
 				read.keycode == 0x14 || read.keycode == 0x58) {
-		// add shift to active modifiers
+		// If SHIFT key is pressed or released
 		if (read.keycode == 0x12 || read.keycode == 0x59) {
+		    // Add to active modfiers if pressed
 		    if (read.what == KEY_PRESS) {
 			    modifier = modifier | KEYBOARD_MOD_SHIFT;
 		    }
+			// Remover from active modifiers if released
 		    else if (read.what == KEY_RELEASE) {
 			    modifier = modifier & ~KEYBOARD_MOD_SHIFT;
 		    }
 		}
 
-		// alt - 0x11
+		// If ALT key is pressed or released
 		else if (read.keycode == 0x11) {
+		    // Add to active modifiers if alt is pressed
 		    if (read.what == KEY_PRESS) {
 			    modifier = modifier | KEYBOARD_MOD_ALT;
 		    } 
+			// Remove from active modifiers if released
 		    else if (read.what == KEY_RELEASE) {
 			    modifier = modifier & ~KEYBOARD_MOD_ALT;
 		    }
 		}
 
-		// ctrl
+		// If CTRL key is pressed or released
 		else if (read.keycode == 0x14) {
+		    // Add to active modifiers if ctrl is pressed
 		    if (read.what == KEY_PRESS) {
 			    modifier = modifier | KEYBOARD_MOD_CTRL;
 		    }
+			// Remove from active modifiers
 		    else if (read.what == KEY_RELEASE) {
 			    modifier = modifier & ~KEYBOARD_MOD_CTRL;
 		    }
 		}
 
-		// caps lock
+		// If CAPS LOCK is pressed
+		// Only if it is pressed as this is a 'sticky' key
 		else if (read.keycode == 0x58 && read.what == KEY_PRESS) {
-		    // caps lock on check right shift 3 and then & with 1
+		    // Check if caps lock is currently off by checking active modifiers
+			// Only turn on if it isn't on - add to active modifiers
 		    if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == 0) {
 		 	    modifier = modifier | KEYBOARD_MOD_CAPS_LOCK;
 		    }
+			// Check if caps lock is on
+			// If it is on, turn it off - remove from active modifiers
 		    else if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == KEYBOARD_MOD_CAPS_LOCK) {
 			    modifier = modifier & ~KEYBOARD_MOD_CAPS_LOCK;
 		    }
 		}
+		// Read until a non-modifier key is pressed, so an event can be generated
 		read = keyboard_read_sequence();
 
 	}
     
-	//out of while loop, only returns event when it's a non-modifier key
+	// Out of while loop, only returns event when it's a non-modifier key
+	// Adds action, key, and modifiers to event struct
 	event.action = read;
 	event.key = ps2_keys[read.keycode];
 	event.modifiers = modifier;
     return event;
 }
 
+/* This function provides a top level keyboard interface. The function reads and 
+ * blocks the next typed key on the keyboard, while keeping track of active modifiers.
+ * Return ASCII values in range 0 to 0x7f indicate a typed key with an ordinary ascii
+ * character. A typed key that isn't associated with an ASCII character, returns a 
+ * hex value over 0x90. The function calls keyboard_read_evemt to receive a key press
+ * event.
+ */
 unsigned char keyboard_read_next(void)
 {
     key_event_t read = keyboard_read_event();
 	ps2_key_t character = read.key;
 	key_action_t press = read.action;
+	// Keep reading keyboard until a key is pressed
+	// as no output should be written if release is registered
 	while (press.what == KEY_RELEASE) {
 		read = keyboard_read_event();
 	    character = read.key;
 		press = read.action;
 	}
+	// If shift is active, the alternate version of the typed character
+	// should be outputted
+	// Shift is checked first as shift is always prioritized
     if ((read.modifiers & KEYBOARD_MOD_SHIFT) == KEYBOARD_MOD_SHIFT) {
 		return character.other_ch;
     }
+	// If caps lock is active, the alternate version of the typed character
+	// should be outputted only if it is an alphabetic letter. A capital letter
+	// is outputted in this case.
     if ((read.modifiers & KEYBOARD_MOD_CAPS_LOCK) == KEYBOARD_MOD_CAPS_LOCK) {
+	    // ASCII range for a through z
 	    if (character.ch >= 97 || character.ch <= 122) {
 		    return character.other_ch;
 	    }
     }
 
-	// if key is above 0x90 or no modifiers, return the ascii value
-	// if shift pressed, return keys[1]
-	// if caps pressed and keys[0] between ascii values 0 through z
+	// If key is above 0x90 or no modifiers, this returns the ascii value
+	// If key is just a regular character, it just returns the normal version
+	// of the character as shift and caps lock are not active.
     return character.ch;
 
 }
