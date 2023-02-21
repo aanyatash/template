@@ -68,10 +68,8 @@ static void test_shell_evaluate(void)
     shell_init(keyboard_read_next, printf);
 
     printf("\nTest shell_evaluate on fixed commands.\n");
-    int ret = shell_evaluate("reboot hello, world!");
-    printf("Command result is zero if successful, is it? %d\n", ret);
 
-    ret = shell_evaluate("echo hello, world!");
+    int ret = shell_evaluate("echo hello, world!");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
 	ret = shell_evaluate("help echo");
@@ -81,6 +79,27 @@ static void test_shell_evaluate(void)
     printf("Command result is zero if successful, is it? %d\n", ret);
 
 	ret = shell_evaluate("help hi");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("peek 0x8000");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("peek");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("peek bob");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("peek 7");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("poke 0x8000 1");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("peek 0x8000");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+    ret = shell_evaluate("reboot hello, world!");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
 }

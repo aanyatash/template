@@ -4,6 +4,7 @@
 #include "printf.h"
 #include "strings.h"
 #include "malloc.h"
+#include "pi.h"
 
 #define LINE_LEN 80
 
@@ -30,9 +31,9 @@ static unsigned int commands_size = 5;
 static const command_t commands[] = {
     {"help", "help [cmd]",  "print command usage and description", cmd_help},
     {"echo", "echo [args]", "print arguments", cmd_echo},
-	{"reboot", "reboot", "reboot the Raspberry Pi", cmd_reboot}//,
-//	{"peek", "peek [addr]", "print contents of memory at address", cmd_peek},
-//	{"poke", "poke [addr] [val]", "store value into memory at address", cmd_poke}
+	{"reboot", "reboot", "reboot the Raspberry Pi", cmd_reboot},
+	{"peek", "peek [addr]", "print contents of memory at address", cmd_peek},
+	{"poke", "poke [addr] [val]", "store value into memory at address", cmd_poke}
 };
 
 int cmd_echo(int argc, const char *argv[])
@@ -68,8 +69,51 @@ int cmd_help(int argc, const char *argv[])
 int cmd_reboot(int argc, const char *argv[]) {
     shell_printf("Rebooting Pi, see ya at the bootloader!");
     uart_putchar(EOT);
+    pi_reboot();
 	return 0;
-    //pi_reboot();
+}
+
+int cmd_peek(int argc, const char *argv[]) {
+    if (argc == 1) {
+		shell_printf("error: peek expects 1 argument [addr]\n");
+		return -1;
+	}
+    unsigned int result = strtonum(argv[1], NULL);
+    if (result == 0) {
+		shell_printf("error: peek cannot convert '%s'\n", argv[1]);
+		return -1;
+	}
+	if (result % 4 != 0) {
+		shell_printf("error: peek address must be 4-byte aligned\n");
+		return -1;
+	}
+	unsigned int *ptr = (unsigned int *) result;
+	shell_printf("%p:	%08x\n", ptr, *ptr);
+	return 0;
+}
+
+int cmd_poke(int argc, const char *argv[]) {
+    if (argc < 3) {
+		shell_printf("error: poke expects 2 arguments [addr] and [val]\n");
+		return -1;
+	}
+	unsigned int address = strtonum(argv[1], NULL);
+	if (address == 0) {
+		shell_printf("error: poke cannot convert '%s'\n", argv[1]);
+		return -1;
+	}
+	if (address % 4 != 0) {
+		shell_printf("error: poke address must be 4-byte aligned\n");
+		return -1;
+	}
+	unsigned int val = strtonum(argv[2], NULL);
+	if (val == 0) {
+		shell_printf("error: poke cannot convert '%s'\n", argv[2]);
+		return -1;
+	}
+	unsigned int *ptr = (unsigned int *) address;
+	*ptr = val;
+    return 0;
 }
 
 void shell_init(input_fn_t read_fn, formatted_fn_t print_fn)
