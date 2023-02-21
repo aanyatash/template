@@ -2,6 +2,8 @@
 #include "shell_commands.h"
 #include "uart.h"
 #include "printf.h"
+#include "strings.h"
+#include "malloc.h"
 
 #define LINE_LEN 80
 
@@ -100,11 +102,103 @@ void shell_readline(char buf[], size_t bufsize)
 	output("%c", '\n');
 }
 
+//int shell_evaluate(const char *line)
+//{
+//    char** tokens = (char**) malloc(40); // this is an array of pointers to tokens, [no of strings][max string size]
+//	for (int i = 0; i < 40; i++) {
+//		tokens[i] = (char*) malloc(80);
+//	}
+//	int i = 0;
+//	int j = 0;
+//
+//	// or you could find beginning and end of word
+//	// malloc that amount 
+//    // store pointer/pointer in tokens
+//
+//	// keep iterating until null pointer reached
+//
+//    // account for leading or trailing white space
+//	// don't add the space in between
+//	while (*line) {
+//	    if (*line == ' ' || *line == '\t' || *line == '\n') {
+//		    //void* dst = malloc(j);
+//			//memcpy(dst, line, j);
+//			//tokens[i][j] = dst;
+//			if (j != 0) {
+//			   tokens[i][j] = '\0';
+//		       i++;
+//			   j = 0;
+//			}
+//			line++;
+//			//tokens[i][j] = *line;
+//		}
+//		else {
+//		    tokens[i][j] = *line;
+//		    j++;
+//		    line++;
+//		}
+//	}
+//	tokens[i][j] = '\0';
+//    
+//    // line to parse
+//    // an array of char*
+//    // array of tokens
+//	// no ' ', '\t', '\n'
+//	// first token is command
+//
+//	//command_fn_t = tokens[0];
+//    return 0;
+//}
+
 int shell_evaluate(const char *line)
 {
-    // TODO: your code here
+    char** tokens = (char**) malloc(40); // this is an array of pointers to tokens, [no of strings][max string size]
+
+	int i = 0;
+	int j = 0;
+
+	// or you could find beginning and end of word
+	// malloc that amount 
+    // store pointer/pointer in tokens
+
+	// keep iterating until null pointer reached
+
+    // account for leading or trailing white space
+	// don't add the space in between
+	while (*line) {
+	    if (*(line+j) == '\0' || *(line+j) == ' ' || *(line+j) == '\t' || *(line+j) == '\n') {
+			if (j != 0) {
+			   //tokens[i][j] = '\0';
+		       tokens[i] = (char*) malloc(j+1);
+			   memcpy(tokens[i], line, j);
+			   //tokens[i] = (char*) dst;
+		       i++;
+			   line = line + j;
+			   j = 0;
+			}
+			line++;
+			//tokens[i][j] = *line;
+		}
+		else {
+		    //tokens[i][j] = *line;
+		    j++;
+		    //line++;
+		}
+	}
+	//tokens[i][j] = '\0';
+    printf("%s\n", tokens[0]);
+	printf("%s\n", tokens[1]);
+	printf("%s\n", tokens[2]);
+    // line to parse
+    // an array of char*
+    // array of tokens
+	// no ' ', '\t', '\n'
+	// first token is command
+
+	//command_fn_t = tokens[0];
     return 0;
 }
+
 
 void shell_run(void)
 {

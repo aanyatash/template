@@ -130,7 +130,7 @@ void main(void)
 
     //test_keyboard_assert();
 
-    //test_shell_evaluate();
+    test_shell_evaluate();
 
     test_shell_readline_fixed_input();
 
