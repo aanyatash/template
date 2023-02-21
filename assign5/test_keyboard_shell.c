@@ -68,7 +68,10 @@ static void test_shell_evaluate(void)
     shell_init(keyboard_read_next, printf);
 
     printf("\nTest shell_evaluate on fixed commands.\n");
-    int ret = shell_evaluate("echo hello, world!");
+    int ret = shell_evaluate("reboot hello, world!");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+    ret = shell_evaluate("echo hello, world!");
     printf("Command result is zero if successful, is it? %d\n", ret);
 }
 

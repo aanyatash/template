@@ -102,53 +102,6 @@ void shell_readline(char buf[], size_t bufsize)
 	output("%c", '\n');
 }
 
-//int shell_evaluate(const char *line)
-//{
-//    char** tokens = (char**) malloc(40); // this is an array of pointers to tokens, [no of strings][max string size]
-//	for (int i = 0; i < 40; i++) {
-//		tokens[i] = (char*) malloc(80);
-//	}
-//	int i = 0;
-//	int j = 0;
-//
-//	// or you could find beginning and end of word
-//	// malloc that amount 
-//    // store pointer/pointer in tokens
-//
-//	// keep iterating until null pointer reached
-//
-//    // account for leading or trailing white space
-//	// don't add the space in between
-//	while (*line) {
-//	    if (*line == ' ' || *line == '\t' || *line == '\n') {
-//		    //void* dst = malloc(j);
-//			//memcpy(dst, line, j);
-//			//tokens[i][j] = dst;
-//			if (j != 0) {
-//			   tokens[i][j] = '\0';
-//		       i++;
-//			   j = 0;
-//			}
-//			line++;
-//			//tokens[i][j] = *line;
-//		}
-//		else {
-//		    tokens[i][j] = *line;
-//		    j++;
-//		    line++;
-//		}
-//	}
-//	tokens[i][j] = '\0';
-//    
-//    // line to parse
-//    // an array of char*
-//    // array of tokens
-//	// no ' ', '\t', '\n'
-//	// first token is command
-//
-//	//command_fn_t = tokens[0];
-//    return 0;
-//}
 
 int shell_evaluate(const char *line)
 {
@@ -185,18 +138,29 @@ int shell_evaluate(const char *line)
 		    //line++;
 		}
 	}
+	int tokens_size = i;
 	//tokens[i][j] = '\0';
     printf("%s\n", tokens[0]);
 	printf("%s\n", tokens[1]);
 	printf("%s\n", tokens[2]);
+	for (int i = 0; i < sizeof(commands); i++) {
+		if (strcmp(tokens[0], commands[i].name) == 0) {
+		    break;
+		}
+		if (i == sizeof(commands) - 1) {
+		    printf("error: no such command '%s'.\n", tokens[0]);
+		    return -1;
+		}
+	}
+    
     // line to parse
     // an array of char*
     // array of tokens
 	// no ' ', '\t', '\n'
 	// first token is command
-
+    int (*function)(int argc, const char *argv[]) = commands[i].fn;
 	//command_fn_t = tokens[0];
-    return 0;
+    return function(tokens_size, (const char**) tokens);
 }
 
 
