@@ -180,7 +180,7 @@ unsigned char keyboard_read_next(void)
 	// is outputted in this case.
     if ((read.modifiers & KEYBOARD_MOD_CAPS_LOCK) == KEYBOARD_MOD_CAPS_LOCK) {
 	    // ASCII range for a through z
-	    if (character.ch >= 97 || character.ch <= 122) {
+	    if (character.ch >= 97 && character.ch <= 122) {
 		    return character.other_ch;
 	    }
     }

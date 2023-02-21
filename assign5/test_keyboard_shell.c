@@ -16,6 +16,12 @@ static void test_keyboard_scancodes(void)
         printf("[%02x]\n", scancode);
         if (scancode == ESC_SCANCODE) break;
     }
+
+	/* I confirmed that it was printing out for a lot of letters, the function keys,
+	 * and the punctuation keys. I also tested holding down one key and holding down multiple
+	 * keys.
+	 */
+
     printf("\nDone with scancode test.\n");
 }
 
@@ -27,6 +33,10 @@ static void test_keyboard_sequences(void)
         printf("%s [%02x]\n", action.what == KEY_PRESS ? "  Press" :"Release", action.keycode);
         if (action.keycode == ESC_SCANCODE) break;
     }
+
+	/* I tested pressing down on a key. All versions of alt and control were also tested to
+	 * confirm that extended key presses and releases were working as expected.
+	 */
     printf("Done with scancode sequences test.\n");
 }
 
@@ -39,6 +49,12 @@ static void test_keyboard_events(void)
         if (evt.action.keycode == ESC_SCANCODE) break;
     }
     printf("Done with key events test.\n");
+
+	/* When testing keyboard events, I pressed every modifier and confirmed the correct
+	 * changes reflected in the modifier value. I also pressed multipla/all of them at once,
+	 * and confirmed the correct modifier value. I tested many of the letter and punctuation keys
+	 * and also the function keys and the whitespace and backspace keys.
+	 */
 }
 
 static void test_keyboard_chars(void)
@@ -52,6 +68,17 @@ static void test_keyboard_chars(void)
             printf("[%02x]", c);
         if (c == ps2_keys[ESC_SCANCODE].ch) break;
     }
+
+	/* When testing keyboard chars, I tested that my shift and caps lock produced the correct
+	 * output for letter and non-letter keys. I also tested that control and alt did nothing.
+	 * I also tested shift and caps lock in unison to ensure that shift always dominated. I tested
+	 * all the modifier keys in unison as well, to ensure that shift still dominated and others
+	 * did nothing. I tested the special function keys, f1 to f12, to ensure a hex value was 
+	 * returned and I tested with whitespace and backspace keys and they behaved as expected.
+	 * The escape key alos behaved as expected, returning 95 and then exiting the program.
+	 * I tested holding down modifer keys and changing the letters and holding down letter keys.
+	 */
+
     printf("\nDone with key chars test.\n");
 }
 
@@ -195,17 +222,17 @@ void main(void)
     test_keyboard_scancodes();
     timer_delay_ms(500);
 
-    //test_keyboard_sequences();
-    //timer_delay_ms(500);
+    test_keyboard_sequences();
+    timer_delay_ms(500);
 
-    //test_keyboard_events(); // CHECK ESC
-    //timer_delay_ms(500);
+    test_keyboard_events(); // CHECK ESC
+    timer_delay_ms(500);
 
-    //test_keyboard_chars();
+    test_keyboard_chars();
 
-    //test_keyboard_assert();
+    test_keyboard_assert();
 
-    test_shell_evaluate();
+    //test_shell_evaluate();
 
    // test_shell_readline_fixed_input();
 
