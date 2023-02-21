@@ -1,8 +1,8 @@
 /* Name: Aanya Tashfeen
  * Filename: "ps2.c"
  * This file contains code that initializes the keyboard and then reads the data and clock
- * to identify the key presses. The file also uses the parity, stop, and start bit obtained from data
- * as an error-correcting code.
+ * to identify the key presses. The file also uses the parity, stop, and start bit obtained 
+ * from data as an error-correcting code.
  */
 
 #include "gpio.h"
@@ -46,44 +46,53 @@ ps2_device_t *ps2_new(unsigned int clock_gpio, unsigned int data_gpio)
     return dev;
 }
 
+/* This function takes in the clock as an unsigned integer argument and
+ * waits for the clock edge to fall as this indicates that data is being sent.
+ */
 void wait_for_falling_clock_edge(unsigned int clk)
 {
     while(gpio_read(clk) == 0) {}
     while(gpio_read(clk) == 1) {}
 }
 
-// read a single ps2 scan code. always returns a correctly received scan code:
+// This function reads a single ps2 scan code. It always returns a correctly received scan code:
 // if an error occurs (e.g., start bit not detected, parity is wrong), the
 // function should read another scan code.
 unsigned char ps2_read(ps2_device_t *dev)
 {
-	// writing a separate helper function read_bit() is highly
-	// recommended: this function waits for a clock falling
-	// edge then reads the data pin. refer to the keyboard
-	// lectures or lab handout on how to wait for a falling edge.
     while (1) {
 	    unsigned int number = 0;
 		unsigned int parity = 0;
 		unsigned int bit = 0;
 		while (1) {
 		    wait_for_falling_clock_edge(dev->clock);
+			// This ensures that the start bit is correctly
+			// a 0.
 			if (gpio_read(dev->data) == 0) {
 				break;
 			}
 		}
+		// Reads the next 10 bits after start bit
 		for (int i = 0; i < 10; i++) {
+		    // Only reads data lines once the clock edge falls
 		    wait_for_falling_clock_edge(dev->clock);
+			// Next 8 bits received are the bits for data we want to use
 			if (i < 8) {
 			    bit = (gpio_read(dev->data) ? 1 : 0);
 				parity += bit;
-				number += bit << i;
+				number += bit << i; // LSB first received
 			}
+			// The 10th bit received is the parity bit
 			if (i == 8) {
 			    parity += (gpio_read(dev->data) ? 1 : 0);
+				// Total number of ones must be odd, if it isn't
+				// discrad the bits and start reading again
 				if (parity % 2 == 0) {
 				    break;
 				}
 			}
+			// The 11th bit recieved must be the stop bit and must be 1
+			// If it is not, loop starts over and data should be read again
 			if (i == 9) {
 				if (gpio_read(dev->data) == 1) {
 				    return number;

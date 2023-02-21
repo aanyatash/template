@@ -1,40 +1,66 @@
+/* Name: Aanya Tashfeen
+ * Filename: keyboard.c
+ * This file contains the code to read keyboard inputs and convert it 
+ * to an event, taking into account active modifiers.
+ */
 #include "keyboard.h"
 #include "ps2.h"
 
 static ps2_device_t *dev;
 static unsigned int modifier = 0;
 
+/* This function initialized the keyboard and the clock and data gpio pins.
+ */
 void keyboard_init(unsigned int clock_gpio, unsigned int data_gpio)
 {
     dev = ps2_new(clock_gpio, data_gpio);
 }
 
+/* This function uses the ps2_read function to return the scancode
+ * based on the keys hit on the keyboard device.
+ */
 unsigned char keyboard_read_scancode(void)
 {
     return ps2_read(dev);
 }
 
+/* This function provides a low level keyboard interface. It reads a 
+ * sequence of scancode bytes, depending on whether a key was pressed
+ * or released and which key it was. The function returns a 'key_action_t'
+ * struct that represents the key action of the sequence read.
+ */
 key_action_t keyboard_read_sequence(void)
 {
     key_action_t action = { 0 };
 	unsigned char first_read = keyboard_read_scancode();
-    // if f0, read second, key release, and store one after
+
+    // If f0 scancode, read next scancode
+	// as this is a key release
+	// The next scancode indicates what key was released
 	if (first_read == 0xf0) {
 		action.what = KEY_RELEASE;
 		action.keycode = keyboard_read_scancode();
 	}
+
+	// If e0 scancode, read next scancode as this indicates an
+	// extended key
 	else if (first_read == 0xe0) {
 	    unsigned char second_read = keyboard_read_scancode();
+		// f0 indicates key release, so must read another scancode
+		// to determine which key was released
 	    if (second_read == 0xf0) {
 		    action.what = KEY_RELEASE;
      		action.keycode = keyboard_read_scancode();
 
 		}
+		// If not f0, must be key press
+		// The currently stored scancode, indicates the action
 		else {
 		    action.what = KEY_PRESS;
 		    action.keycode = second_read;
 		}
 	}
+	// Normal key pressed, just need to read one byte
     else {
 		action.what = KEY_PRESS;
 		action.keycode = first_read;
