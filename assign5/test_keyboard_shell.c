@@ -99,6 +99,49 @@ static void test_shell_evaluate(void)
 	ret = shell_evaluate("peek 0x8000");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
+	ret = shell_evaluate("poke 0x8000 0");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("peek 0x8000");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("poke 0x8000");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("poke 0x8000 wilma");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("poke bob 3");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+	ret = shell_evaluate("poke 11 0");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+
+    printf("pin 47 %d\n", gpio_read(GPIO_PIN47));
+	ret = shell_evaluate("peek 0x20200010");
+
+	ret = shell_evaluate("poke 0x20200010 0x200000");  // fsel register
+    printf("Command result is zero if successful, is it? %d\n", ret);
+	ret = shell_evaluate("peek 0x20200038");
+
+	printf("new pin 47 %d\n", gpio_read(GPIO_PIN47));
+	
+	ret = shell_evaluate("poke 0x20200020 0x8000"); // this sets gpio pin 31 to high 
+    printf("Command result is zero if successful, is it? %d\n", ret);
+	ret = shell_evaluate("peek 0x20200038");
+
+
+	printf("new pin 47 %d\n", gpio_read(GPIO_PIN47));
+
+
+	ret = shell_evaluate("poke 0x2020002C 0x8000");
+    printf("Command result is zero if successful, is it? %d\n", ret);
+	ret = shell_evaluate("peek 0x20200038");
+
+
+	printf("final pin 47 %d\n", gpio_read(GPIO_PIN47));
+
+
     ret = shell_evaluate("reboot hello, world!");
     printf("Command result is zero if successful, is it? %d\n", ret);
 
