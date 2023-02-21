@@ -253,7 +253,8 @@ static void test_shell_readline_keyboard(void)
 
 /* I used make run to test shell. Here, I tested typing in nothing, typing in only spaces,
  * adding leading whitespces/tabs and trailing whitespaces tabs before all commands. I tested
- * typing multiple arguments after a command and not enough.
+ * typing multiple arguments after a command and not enough commands. I tested typing in multiple
+ * commands in sequence and also repeatedly using the same command.
  */
 
 void main(void)
