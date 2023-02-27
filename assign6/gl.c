@@ -4,7 +4,7 @@
 #include "font.h"
 #include "printf.h"
 
-
+static gl_mode_t swapped = 0;
 
 void gl_init(unsigned int width, unsigned int height, gl_mode_t mode)
 {
@@ -14,6 +14,7 @@ void gl_init(unsigned int width, unsigned int height, gl_mode_t mode)
 void gl_swap_buffer(void)
 {
     fb_swap_buffer();
+	swapped = 0;
 }
 
 unsigned int gl_get_width(void)
@@ -39,6 +40,11 @@ void gl_clear(color_t c)
 
 void gl_draw_pixel(int x, int y, color_t c)
 {
+    // check if y_offset = something
+	if (swapped == 0){
+		gl_swap_buffer();
+		swapped = 1;
+	} 
     if (x >= gl_get_width() && y >= gl_get_height()) {
 		return;
 	}

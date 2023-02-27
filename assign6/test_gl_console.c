@@ -62,7 +62,6 @@ void test_gl(void)
     // Blue rectangle in center of screen
     gl_draw_rect(WIDTH/2 - 50, HEIGHT/2 - 50, 100, 100, GL_BLUE);
 
-    gl_swap_buffer();
     // Single amber character
     gl_draw_char(60, 10, 'A', GL_AMBER);
 
@@ -70,7 +69,6 @@ void test_gl(void)
     gl_swap_buffer();
 
 	timer_delay(1);
-    gl_swap_buffer(); // virtual buffer
 
 	gl_draw_string(60, 10, "Aanya Tashfeen", GL_AMBER);
 	gl_swap_buffer();

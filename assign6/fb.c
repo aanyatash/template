@@ -47,9 +47,11 @@ void fb_init(unsigned int width, unsigned int height, unsigned int depth_in_byte
 
 void fb_swap_buffer(void)
 {
+    if (fb.virtual_height == fb.height) {
+		return;
+	}
     if (fb.y_offset == 0) {
         fb.y_offset = fb.height;
-		//fb.framebuffer = (char *) fb.framebuffer + y_offset
 	}
 	else {
 	    fb.y_offset = 0;
