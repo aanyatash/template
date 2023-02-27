@@ -26,18 +26,18 @@ void test_fb(void)
     timer_delay(3);
 
     fb_init(600, 400, DEPTH, FB_DOUBLEBUFFER);
-    cptr = fb_get_draw_buffer();
+    cptr = fb_get_draw_buffer();  // normal buffer
     nbytes = fb_get_pitch()*fb_get_height();
     memset(cptr, 0xff, nbytes); // fill one buffer with white pixels
-    fb_swap_buffer();
+    fb_swap_buffer(); // virutal buffer
 
     cptr = fb_get_draw_buffer();
     memset(cptr, 0x33, nbytes); // fill other buffer with dark gray pixels
-    fb_swap_buffer();
+    fb_swap_buffer(); // normal buffer
     timer_delay(1);
 
     for (int i = 0; i < 5; i++) {
-        fb_swap_buffer();
+        fb_swap_buffer(); // virtual, normal, virtual, normal, virtual, Should display dark grey three times
         timer_delay(1);
     }
 }
@@ -62,12 +62,20 @@ void test_gl(void)
     // Blue rectangle in center of screen
     gl_draw_rect(WIDTH/2 - 50, HEIGHT/2 - 50, 100, 100, GL_BLUE);
 
+    gl_swap_buffer();
     // Single amber character
     gl_draw_char(60, 10, 'A', GL_AMBER);
 
     // Show buffer with drawn contents
     gl_swap_buffer();
-    timer_delay(3);
+
+	timer_delay(1);
+    gl_swap_buffer(); // virtual buffer
+
+	gl_draw_string(60, 10, "Aanya Tashfeen", GL_AMBER);
+	gl_swap_buffer();
+	timer_delay(3);
+
 }
 
 void test_console(void)
@@ -110,8 +118,8 @@ void main(void)
     timer_init();
     printf("Executing main() in test_gl_console.c\n");
 
-    test_fb();
-    //test_gl();
+    //test_fb();
+    test_gl();
     //test_console();
 
     printf("Completed main() in test_gl_console.c\n");

@@ -1,8 +1,10 @@
 #include "gl.h"
+#include "fb.h"
+#include "strings.h"
+#include "font.h"
+#include "printf.h"
 
 
-
-// use pitch not width, no bytes per pxoxel
 
 void gl_init(unsigned int width, unsigned int height, gl_mode_t mode)
 {
@@ -11,7 +13,7 @@ void gl_init(unsigned int width, unsigned int height, gl_mode_t mode)
 
 void gl_swap_buffer(void)
 {
-    // TODO: implement this function
+    fb_swap_buffer();
 }
 
 unsigned int gl_get_width(void)
@@ -26,15 +28,13 @@ unsigned int gl_get_height(void)
 
 color_t gl_color(unsigned char r, unsigned char g, unsigned char b)
 {
-    color_t alpha = 0xff;
-    return alpha | r<<16 | g<<8 | b;
+    return 0xff000000 | r<<16 | g<<8 | b;
 }
 
 void gl_clear(color_t c)
 {
-    unsigned char *cptr = fb_get_draw_buffer();
-    int nbytes = gl_get_width()*gl_get_height();
-    memset(fb_get_draw_buffer, c nbytes); // fill entire framebuffer with pixels of color c
+    int nbytes = gl_get_width()*gl_get_height()*fb_get_depth();
+    memset(fb_get_draw_buffer(), c, nbytes); // fill entire framebuffer with pixels of color c
 }
 
 void gl_draw_pixel(int x, int y, color_t c)
@@ -59,29 +59,51 @@ void gl_draw_rect(int x, int y, int w, int h, color_t c)
 {
     for( int i = 0; i < w; i ++ ) {
         for( int j = 0; j < h; j ++) {
-            draw_pixel(i + x, j + y, c);
+            gl_draw_pixel(i + x, j + y, c);
 		}
     }
 }
 
 void gl_draw_char(int x, int y, char ch, color_t c)
 {
-    // TODO: implement this function
+    unsigned char buf[font_get_glyph_size()];
+    font_get_glyph(ch, buf, sizeof(buf));
+
+
+    // declare a variable `img` of proper type to point
+    // to a two-dimensional array of glyph width/height
+    // and initialize img to point to buf
+
+    // after your addition, code below will print the glyph as
+    // "ascii art" using # and space characters
+	unsigned char (*img)[font_get_glyph_width()] = (unsigned char (*) [font_get_glyph_width()])buf;
+
+    for (int i = 0; i < font_get_glyph_height(); i++) {
+        for (int j = 0; j < font_get_glyph_width(); j++) {
+			if (img[i][j] == 0xff) {
+			    gl_draw_pixel(j + x, i + y, c);
+			}
+        }
+    }
+
 }
 
 void gl_draw_string(int x, int y, const char* str, color_t c)
 {
-    // TODO: implement this function
+    int i = 0;
+    while (str[i]) {
+        gl_draw_char(x, y, str[i], c);
+		x += font_get_glyph_width();
+		i++;
+	}
 }
 
 unsigned int gl_get_char_height(void)
 {
-    // TODO: implement this function
-    return 0;
+    return font_get_glyph_height();
 }
 
 unsigned int gl_get_char_width(void)
 {
-    // TODO: implement this function
-    return 0;
+    return font_get_glyph_width();
 }
