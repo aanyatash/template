@@ -20,7 +20,6 @@ static volatile fb_config_t fb __attribute__ ((aligned(16)));
 
 void fb_init(unsigned int width, unsigned int height, unsigned int depth_in_bytes, fb_mode_t mode)
 {
-    // TODO: extend this function to support double-buffered mode
 
     fb.width = width;
     fb.virtual_width = width;
@@ -36,6 +35,10 @@ void fb_init(unsigned int width, unsigned int height, unsigned int depth_in_byte
     fb.framebuffer = 0;
     fb.total_bytes = 0;
 
+	if (mode == 1) { // if in double-buffering mode
+		fb.virtual_height *= 2;		
+	}
+
     // Send address of fb struct to the GPU as message
     bool mailbox_success = mailbox_request(MAILBOX_FRAMEBUFFER, (unsigned int)&fb);
     assert(mailbox_success); // confirm successful config
@@ -44,36 +47,40 @@ void fb_init(unsigned int width, unsigned int height, unsigned int depth_in_byte
 
 void fb_swap_buffer(void)
 {
-    // TODO: implement this function
+    if (fb.y_offset == 0) {
+        fb.y_offset = fb.height;
+		//fb.framebuffer = (char *) fb.framebuffer + y_offset
+	}
+	else {
+	    fb.y_offset = 0;
+	}
+    bool mailbox_success = mailbox_request(MAILBOX_FRAMEBUFFER, (unsigned int)&fb);
+    assert(mailbox_success); // confirm successful config
 }
+
 
 void* fb_get_draw_buffer(void)
 {
-    // TODO: implement this function
-    return 0;
+    return fb.framebuffer;
 }
 
 unsigned int fb_get_width(void)
 {
-    // TODO: implement this function
-    return 0;
+    return fb.width;
 }
 
 unsigned int fb_get_height(void)
 {
-    // TODO: implement this function
-    return 0;
+    return fb.height;
 }
 
 unsigned int fb_get_depth(void)
 {
-    // TODO: implement this function
-    return 0;
+    return fb.bit_depth / 8;
 }
 
 unsigned int fb_get_pitch(void)
 {
-    // TODO: implement this function
-    return 0;
+    return fb.pitch;
 }
 

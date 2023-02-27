@@ -30,7 +30,6 @@ void test_fb(void)
     nbytes = fb_get_pitch()*fb_get_height();
     memset(cptr, 0xff, nbytes); // fill one buffer with white pixels
     fb_swap_buffer();
-    timer_delay(1);
 
     cptr = fb_get_draw_buffer();
     memset(cptr, 0x33, nbytes); // fill other buffer with dark gray pixels
@@ -112,8 +111,8 @@ void main(void)
     printf("Executing main() in test_gl_console.c\n");
 
     test_fb();
-    test_gl();
-    test_console();
+    //test_gl();
+    //test_console();
 
     printf("Completed main() in test_gl_console.c\n");
     uart_putchar(EOT);

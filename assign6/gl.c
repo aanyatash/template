@@ -1,5 +1,9 @@
 #include "gl.h"
 
+
+
+// use pitch not width, no bytes per pxoxel
+
 void gl_init(unsigned int width, unsigned int height, gl_mode_t mode)
 {
     fb_init(width, height, 4, mode);    // use 32-bit depth always for graphics library
@@ -12,20 +16,17 @@ void gl_swap_buffer(void)
 
 unsigned int gl_get_width(void)
 {
-    // TODO: implement this function
-    return 0;
+    return fb_get_width;
 }
 
 unsigned int gl_get_height(void)
 {
-    // TODO: implement this function
-    return 0;
+    return fb_get_width;
 }
 
 color_t gl_color(unsigned char r, unsigned char g, unsigned char b)
 {
-    // TODO: implement this function
-    return 0;
+    return | |;
 }
 
 void gl_clear(color_t c)
