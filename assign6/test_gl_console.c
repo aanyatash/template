@@ -76,6 +76,17 @@ void test_gl(void)
 	gl_swap_buffer();
 	timer_delay(3);
 
+
+	// write past end
+	// only spaces
+	// make sure buf is null when font_get_glyph is false
+	// clear after
+	// test if pixel writes beyond, also rectangle, and char, string
+
+
+	// test all of this with single buffer too
+
+
 }
 
 void test_console(void)

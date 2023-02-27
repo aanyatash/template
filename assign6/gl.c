@@ -67,6 +67,7 @@ void gl_draw_rect(int x, int y, int w, int h, color_t c)
 void gl_draw_char(int x, int y, char ch, color_t c)
 {
     unsigned char buf[font_get_glyph_size()];
+	memset(buf, '\0', sizeof(buf));
     font_get_glyph(ch, buf, sizeof(buf));
 
 
