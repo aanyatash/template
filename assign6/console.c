@@ -82,16 +82,29 @@ static void process_char(char ch)
 		}
 		if (cursor_y >= gl_get_height() - 1) {
 		    scroll_clear();
-		   	for (int i = 0; i < gl_get_width(); i ++) {
-		        for (int j = line_height; j < gl_get_height(); j ++) {
-				    gl_draw_pixel(i, j - line_height, img[j][i]);
-				}
-	        }
+			// CAN COMBINE THESE TWO LOOPS!! DRAW AND THEN RE STORE
 		   	for (int i = 0; i < gl_get_width(); i ++) {
 		        for (int j = 0; j < gl_get_height(); j ++) {
-				    img[j][i] = gl_read_pixel(i, j);
+				    gl_draw_pixel(i, j, img[j + line_height][i]);
+					img[j][i] = gl_read_pixel(i, j);
 				}
 	        }
+//		   	for (int i = 0; i < gl_get_width(); i ++) {
+//		        for (int j = 0; j < gl_get_height(); j ++) {
+//				    img[j][i] = gl_read_pixel(i, j);
+//				}
+//	        }
+
+//		   	for (int i = 0; i < gl_get_width(); i ++) {
+//		        for (int j = line_height; j < gl_get_height(); j ++) {
+//				    gl_draw_pixel(i, j - line_height, img[j][i]);
+//				}
+//	        }
+//		   	for (int i = 0; i < gl_get_width(); i ++) {
+//		        for (int j = 0; j < gl_get_height(); j ++) {
+//				    img[j][i] = gl_read_pixel(i, j);
+//				}
+//	        }
 			cursor_y -= line_height;
 		}
 	    gl_draw_char(cursor_x, cursor_y, ch, foreground_color);
@@ -136,7 +149,8 @@ int console_printf(const char *format, ...)
 	}
 	gl_swap_buffer();
 	return total;
-
+// think about faster ways to redraw screen
+// if buf[i-1] is a newline
 }
 
 
