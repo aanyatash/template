@@ -23,21 +23,23 @@ void test_fb(void)
     assert(cptr != NULL);
     int nbytes = fb_get_pitch()*fb_get_height();
     memset(cptr, 0x99, nbytes); // fill entire framebuffer with light gray pixels
-    timer_delay(3);
+    timer_delay(2);
 
     fb_init(600, 400, DEPTH, FB_DOUBLEBUFFER);
-    cptr = fb_get_draw_buffer();  // normal buffer
+    cptr = fb_get_draw_buffer();  // virtual buffer
     nbytes = fb_get_pitch()*fb_get_height();
-    memset(cptr, 0xff, nbytes); // fill one buffer with white pixels
-    fb_swap_buffer(); // virutal buffer
+    memset(cptr, 0xff, nbytes); // fill hidden buffer with white pixels
+    fb_swap_buffer(); // show white buffer
+	timer_delay(1);
 
-    cptr = fb_get_draw_buffer();
+    cptr = fb_get_draw_buffer(); // virtual buffer
     memset(cptr, 0x33, nbytes); // fill other buffer with dark gray pixels
-    fb_swap_buffer(); // normal buffer
+    //timer_delay(1);
+    fb_swap_buffer(); // show grey buffer
     timer_delay(1);
 
     for (int i = 0; i < 5; i++) {
-        fb_swap_buffer(); // virtual, normal, virtual, normal, virtual, Should display dark grey three times
+        fb_swap_buffer(); // white, grey, virtual, normal, virtual, Should display dark grey three times
         timer_delay(1);
     }
 }
@@ -68,10 +70,11 @@ void test_gl(void)
     // Show buffer with drawn contents
     gl_swap_buffer();
 
-	timer_delay(1);
+	timer_delay(2);
 
+    gl_clear(gl_color(0x55, 0, 0x55));
 	gl_draw_string(60, 10, "Aanya Tashfeen", GL_AMBER);
-	gl_swap_buffer();
+	gl_swap_buffer(); // show
 	timer_delay(3);
 
 
@@ -155,7 +158,7 @@ void main(void)
 
     //test_fb();
     //test_gl();
-	//test_basic_console();
+	test_basic_console();
     test_console();
 
     printf("Completed main() in test_gl_console.c\n");

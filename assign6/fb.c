@@ -36,12 +36,16 @@ void fb_init(unsigned int width, unsigned int height, unsigned int depth_in_byte
     fb.total_bytes = 0;
 
 	if (mode == 1) { // if in double-buffering mode
-		fb.virtual_height *= 2;		
+		fb.virtual_height *= 2;	
+		//fb.y_offset = fb.height;
 	}
 
     // Send address of fb struct to the GPU as message
     bool mailbox_success = mailbox_request(MAILBOX_FRAMEBUFFER, (unsigned int)&fb);
     assert(mailbox_success); // confirm successful config
+//	if (mode == 1) {
+//		fb.y_offset = fb.height;
+//	}
 }
 
 
@@ -63,6 +67,9 @@ void fb_swap_buffer(void)
 
 void* fb_get_draw_buffer(void)
 {
+    if (fb.y_offset == 0 && fb.virtual_height != fb.height) {
+        return ((unsigned char*) fb.framebuffer) + fb.pitch*fb.height;
+	}
     return fb.framebuffer;
 }
 
