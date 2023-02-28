@@ -34,7 +34,6 @@ void test_fb(void)
 
     cptr = fb_get_draw_buffer(); // virtual buffer
     memset(cptr, 0x33, nbytes); // fill other buffer with dark gray pixels
-    //timer_delay(1);
     fb_swap_buffer(); // show grey buffer
     timer_delay(1);
 
@@ -71,22 +70,120 @@ void test_gl(void)
     gl_swap_buffer();
 
 	timer_delay(2);
-
+    
+	// Normal string drawing
     gl_clear(gl_color(0x55, 0, 0x55));
 	gl_draw_string(60, 10, "Aanya Tashfeen", GL_AMBER);
 	gl_swap_buffer(); // show
 	timer_delay(3);
 
-
 	// write past end
+    gl_clear(gl_color(0x55, 0, 0x55));
+	gl_draw_string(0, 0, "I think that this sentence should be way too long to print", GL_AMBER);
+	gl_swap_buffer(); // show
+	timer_delay(3);
+
+
+	// write negative coordinates for string
+    gl_clear(gl_color(0x55, 0, 0x55));
+	gl_draw_string(-60, 10, "I think that this sentence should be way too long to print", GL_AMBER);
+
+	// Negative coordinates for char
+    gl_draw_char(-60, 10, 'S', GL_AMBER); // should show nothing
+	gl_swap_buffer(); // show
+	timer_delay(3);
+
+	// write negative coordinates for pixel
+    gl_clear(gl_color(0x55, 0, 0x55));
+	gl_draw_pixel(60, -10, GL_AMBER);
+	gl_swap_buffer(); // show
+	timer_delay(3);
+
+	// write negative for read
+    color_t c = gl_read_pixel(-19, 2);	
+	assert(c == 0);
+
+	// write too big y for read
+    c = gl_read_pixel(19, 2000);	
+	assert(c == 0);
+
+	// too big x for read
+    c = gl_read_pixel(19000, 2);	
+	assert(c == 0);
+
+	// too big x and y for read
+    c = gl_read_pixel(19000, 20000);	
+	assert(c == 0);
+
+    gl_clear(GL_INDIGO);
+	// write too big y for pixel
+	gl_draw_pixel(60, 100000, GL_AMBER);
+
+	// too big x for pixel
+	gl_draw_pixel(60000, 10, GL_AMBER);
+
+	// too big x and y for pixel - edge case
+	gl_draw_pixel(640, 512, GL_AMBER);
+
+	gl_swap_buffer(); // show
+	timer_delay(2);
+
+    gl_clear(GL_INDIGO);
+	// write too big y for string
+	gl_draw_string(60, 100000, "Aanya Tashfeen", GL_AMBER);
+
+	// too big x for string
+	gl_draw_string(60000, 10, "Aanya Tashfeen", GL_AMBER);
+
+	// too big x and y for string - edge case
+	gl_draw_string(640, 512, "Aanya Tashfeen", GL_AMBER);
+
+	gl_swap_buffer(); // show
+	timer_delay(2);
+
+	// intialize negative width or height
 	// only spaces
-	// make sure buf is null when font_get_glyph is false
+    gl_draw_string(60, 10, "            .", GL_AMBER);
+	gl_swap_buffer();
+	timer_delay(2);
+
+	// When font_get_glyph is false, so invalid char, nothing should happen
+    gl_draw_char(60, 10, '\n', GL_AMBER);
+	gl_swap_buffer();
+
 	// clear after
 	// test if pixel writes beyond, also rectangle, and char, string
 
+    // negative colors should automatically be converted to signed with no
+	// additonal processing needed
+	gl_draw_char(60, 10, 'A', GL_AMBER);
+	gl_clear(-5);
+	gl_swap_buffer();
+	timer_delay(1);
 
-	// test all of this with single buffer too
+	gl_clear(GL_INDIGO);
+	gl_swap_buffer();
+	timer_delay(1);
+	gl_clear(gl_color(-1, -2, -3));
+	gl_swap_buffer();
 
+	// test with single buffer too
+    gl_init(WIDTH, HEIGHT, GL_SINGLEBUFFER);
+	assert(gl_get_width() == WIDTH);
+	assert(gl_get_height() == HEIGHT);
+	gl_clear(GL_BLACK);
+	gl_draw_pixel(60, 10, GL_GREEN);
+	timer_delay(1);
+	gl_draw_char(120, 20, 'A', GL_GREEN);
+	timer_delay(1);
+	gl_draw_string(240, 40, "HI", GL_GREEN);
+	timer_delay(1);
+
+	gl_clear(GL_SILVER);
+	timer_delay(1);
+
+	gl_draw_string(60, 10, "Aanya Tashfeen", GL_MAGENTA);
+	timer_delay(1);
 
 }
 
@@ -100,7 +197,6 @@ void test_basic_console()
 
 
     console_printf("Hello, world!\nHi\b");
-
 
 }
 
@@ -137,7 +233,7 @@ void test_console(void)
     console_printf("\n\n\n\n\n\n\nHello, my name is Aanya Tashfeen. "); //Theoretically, this line should be long enough to wrap around.");
 	timer_delay(3);
 
-
+// just entering
 
 }
 
@@ -157,9 +253,9 @@ void main(void)
     printf("Executing main() in test_gl_console.c\n");
 
     //test_fb();
-    //test_gl();
-	test_basic_console();
-    test_console();
+    test_gl();
+	//test_basic_console();
+    //test_console();
 
     printf("Completed main() in test_gl_console.c\n");
     uart_putchar(EOT);

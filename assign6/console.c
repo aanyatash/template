@@ -20,7 +20,7 @@ static unsigned int cursor_x = 0;
 static unsigned int cursor_y = 0;
 static unsigned int** img;
 static void scroll_clear(void);
-static void total = 0;
+static int total = 0;
 
 /* This function initializes the console. The console is intially empty and is cleared to the desired
  * background color. The cursor begins in the home position. This function takes 4 parameters:

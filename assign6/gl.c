@@ -11,7 +11,6 @@
 #include "font.h"
 #include "printf.h"
 
-static gl_mode_t swapped = 1;
 static unsigned int full_width;
 
 /* This function initializes the graphics library by initializing the framebuffer. It
@@ -87,7 +86,7 @@ void gl_clear(color_t c)
 void gl_draw_pixel(int x, int y, color_t c)
 {
     // Does nothing if coords outside bounds of framebuffer
-    if (x >= gl_get_width() && y >= gl_get_height() && x < 0 && y < 0) {
+    if (x >= gl_get_width() || y >= gl_get_height() || x < 0 || y < 0) {
 		return;
 	}
 	// Gets pointer to framebuffer and makes a 2d array
@@ -105,7 +104,7 @@ void gl_draw_pixel(int x, int y, color_t c)
 color_t gl_read_pixel(int x, int y)
 {
     // Returns 0 if outside bounds of framebuffer
-    if (x >= gl_get_width() && y >= gl_get_height() && x < 0 && y < 0) {
+    if (x >= gl_get_width() || y >= gl_get_height() || x < 0 || y < 0) {
 		return 0;
 	}
 	// Pointer to 2d framebuffer array
