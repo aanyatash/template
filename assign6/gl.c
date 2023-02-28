@@ -5,10 +5,16 @@
 #include "printf.h"
 
 static gl_mode_t swapped = 0;
+static unsigned int full_width;
 
 void gl_init(unsigned int width, unsigned int height, gl_mode_t mode)
 {
     fb_init(width, height, 4, mode);    // use 32-bit depth always for graphics library
+    full_width = fb_get_pitch()/fb_get_depth();
+	if (swapped == 0){
+		gl_swap_buffer();
+		swapped = 1;
+	} 
 }
 
 void gl_swap_buffer(void)
@@ -19,7 +25,7 @@ void gl_swap_buffer(void)
 
 unsigned int gl_get_width(void)
 {
-    return fb_get_pitch()/fb_get_depth();
+    return fb_get_width();
 }
 
 unsigned int gl_get_height(void)
@@ -32,10 +38,21 @@ color_t gl_color(unsigned char r, unsigned char g, unsigned char b)
     return 0xff000000 | r<<16 | g<<8 | b;
 }
 
-void gl_clear(color_t c)
+void gl_clear(color_t c)   // fix to make it pixel by pixel
 {
-    int nbytes = gl_get_width()*gl_get_height()*fb_get_depth();
-    memset(fb_get_draw_buffer(), c, nbytes); // fill entire framebuffer with pixels of color c
+	if (swapped == 0){
+		gl_swap_buffer();
+		swapped = 1;
+	}
+    unsigned int (*im)[full_width] = fb_get_draw_buffer();
+    for( int i = 0; i < gl_get_width(); i ++ ) {
+        for( int j = 0; j < gl_get_height(); j ++) {
+		    im[j][i] = c;
+        }
+    }
+
+	//int nbytes = fb_get_pitch()*gl_get_height();
+    //memset(fb_get_draw_buffer(), c, nbytes); // fill entire framebuffer with pixels of color c
 }
 
 void gl_draw_pixel(int x, int y, color_t c)
@@ -48,7 +65,7 @@ void gl_draw_pixel(int x, int y, color_t c)
     if (x >= gl_get_width() && y >= gl_get_height()) {
 		return;
 	}
-    unsigned int (*im)[gl_get_width()] = fb_get_draw_buffer();
+    unsigned int (*im)[full_width] = fb_get_draw_buffer();
     im[y][x] = c; 
 }
 
@@ -57,7 +74,7 @@ color_t gl_read_pixel(int x, int y)
     if (x >= gl_get_width() && y >= gl_get_height()) {
 		return 0;
 	}
-    unsigned int (*im)[gl_get_width()] = fb_get_draw_buffer();
+    unsigned int (*im)[full_width] = fb_get_draw_buffer();
     return im[y][x];
 }
 

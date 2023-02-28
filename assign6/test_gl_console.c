@@ -87,13 +87,27 @@ void test_gl(void)
 
 }
 
+void test_basic_console()
+{
+    console_init(10, 30, GL_CYAN, GL_INDIGO);
+
+    // Line 1: Hello, world!
+    console_printf("Hello, world!\nHi\b");
+    timer_delay(2);
+
+
+    console_printf("Hello, world!\nHi\b");
+
+
+}
+
 void test_console(void)
 {
     console_init(10, 30, GL_CYAN, GL_INDIGO);
 
     // Line 1: Hello, world!
     console_printf("Hello, world!\n");
-    timer_delay(2);
+    timer_delay(3);
 
     // Add line 2: Happiness == CODING
     console_printf("Happiness");
@@ -110,6 +124,18 @@ void test_console(void)
 
     // Line 1: "Goodbye"
     console_printf("Goodbye!\n");
+	timer_delay(2);
+
+    // Horizontal wrapping
+    console_printf("Hello, my name is Aanya Tashfeen. "); //Theoretically, this line should be long enough to wrap around.");
+	timer_delay(3);
+
+    // Scrolling
+    console_printf("\n\n\n\n\n\n\nHello, my name is Aanya Tashfeen. "); //Theoretically, this line should be long enough to wrap around.");
+	timer_delay(3);
+
+
+
 }
 
 /* TODO: Add tests to test your graphics library and console.
@@ -128,8 +154,9 @@ void main(void)
     printf("Executing main() in test_gl_console.c\n");
 
     //test_fb();
-    test_gl();
-    //test_console();
+    //test_gl();
+	//test_basic_console();
+    test_console();
 
     printf("Completed main() in test_gl_console.c\n");
     uart_putchar(EOT);
