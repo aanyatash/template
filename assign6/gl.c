@@ -125,21 +125,27 @@ void gl_draw_rect(int x, int y, int w, int h, color_t c)
     }
 }
 
+/* This function draws a single character at coordinates x, y in color c.
+ * Only pixels in the bounds of framebuffer are drawn. The function takes
+ * 4 parameters:
+ * 1) x is an integer coordinate on the framebuffer
+ * 2) y is an integer coordinate on the framebuffer
+ * 3) ch is the char to be drawn
+ * 4) c is a color_t that described the desired color of the pixel
+ */
 void gl_draw_char(int x, int y, char ch, color_t c)
 {
     unsigned char buf[font_get_glyph_size()];
 	memset(buf, '\0', sizeof(buf));
-    font_get_glyph(ch, buf, sizeof(buf));
-
+    font_get_glyph(ch, buf, sizeof(buf)); // add char info to buf
 
     // declare a variable `img` of proper type to point
     // to a two-dimensional array of glyph width/height
     // and initialize img to point to buf
-
-    // after your addition, code below will print the glyph as
-    // "ascii art" using # and space characters
 	unsigned char (*img)[font_get_glyph_width()] = (unsigned char (*) [font_get_glyph_width()])buf;
 
+    // Draws 'on' pixels into img
+	// Iterates through pixel by pixel
     for (int i = 0; i < font_get_glyph_height(); i++) {
         for (int j = 0; j < font_get_glyph_width(); j++) {
 			if (img[i][j] == 0xff) {
@@ -150,21 +156,34 @@ void gl_draw_char(int x, int y, char ch, color_t c)
 
 }
 
+/* This function draws a string at the coordinates x, y in the color c. The characters
+ * are drawn left to write in a single line. Only pixels within framebuffer bounds are drawn.
+ * The function takes 4 parameters:
+ * 1) x is an integer coordinate on the framebuffer
+ * 2) y is an integer coordinate on the framebuffer
+ * 3) str is the string of chars to be drawn
+ * 4) c is a color_t that described the desired color of the pixel
+ */
 void gl_draw_string(int x, int y, const char* str, color_t c)
 {
     int i = 0;
+	// Draw chars until end of string reached
     while (str[i]) {
         gl_draw_char(x, y, str[i], c);
-		x += font_get_glyph_width();
+		x += font_get_glyph_width(); // calculates width to draw chars spaced apart
 		i++;
 	}
 }
 
+/* Returns the height in pixels of a character glyph as an unsigned int
+ */
 unsigned int gl_get_char_height(void)
 {
     return font_get_glyph_height();
 }
 
+/* Returns the width in pixels of a character glyph as an unsigned int
+ */
 unsigned int gl_get_char_width(void)
 {
     return font_get_glyph_width();
