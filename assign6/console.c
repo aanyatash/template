@@ -12,14 +12,8 @@ static color_t background_color;
 static color_t foreground_color;
 static unsigned int cursor_x = 0;
 static unsigned int cursor_y = 0;
-//static unsigned int scroll = 0;
-//static unsigned int swap = 0;
-//static unsigned int cur;
-static unsigned int rows;
-static unsigned int cols;
 static unsigned int** img;
-
-static void scroll(void);
+static void scroll_clear(void);
 
 void console_init(unsigned int nrows, unsigned int ncols, color_t foreground, color_t background)
 {
@@ -27,8 +21,6 @@ void console_init(unsigned int nrows, unsigned int ncols, color_t foreground, co
     gl_init(gl_get_char_width()*ncols, line_height*nrows, GL_DOUBLEBUFFER);
 	background_color = background;
 	foreground_color = foreground;
-	rows = nrows;
-	cols = ncols;
 	img = (unsigned int**) malloc(gl_get_height()*4); // equivalent to height in pixels, 4 bytes per pixel
 	for (int i = 0; i < gl_get_height(); i++) {
 		img[i] = (unsigned int *) malloc(gl_get_width()*4); // equivalent to width
@@ -55,7 +47,7 @@ void console_clear(void)
 	}
 }
 
-void scroll(void)
+void scroll_clear(void)
 {
     gl_clear(background_color);
 }
@@ -93,7 +85,7 @@ static void process_char(char ch)
 			cursor_x = 0;
 		}
 		if (cursor_y >= gl_get_height() - 1) {
-		    scroll();
+		    scroll_clear();
 		   	for (int i = 0; i < gl_get_width(); i ++) {
 		        for (int j = line_height; j < gl_get_height(); j ++) {
 				    gl_draw_pixel(i, j - line_height, img[j][i]);
@@ -114,9 +106,6 @@ static void process_char(char ch)
 				}
 		    }
         }
-//		if (scroll == 0) {
-//		    gl_swap_buffer();
-//		}
 	    cursor_x += gl_get_char_width();
 		// wrap around
 		// scrolling - memcpy into buf and then set i to 0 to write into new buf on virtual buf - only swapped once finished, track this!
@@ -149,9 +138,9 @@ int console_printf(const char *format, ...)
 		}
 	    ch = buf[i];
 		process_char(ch);
-		if (buf[i] != '\n') {
-		    gl_swap_buffer();
-		}
+//		if (buf[i] != '\n') {
+//		    gl_swap_buffer();
+//		}
 //		if (scroll == 1 && swap == 0) {
 //		    i = 0;
 //			swap = 1;
@@ -164,6 +153,7 @@ int console_printf(const char *format, ...)
 //		}
         i++;
 	}
+	gl_swap_buffer();
 	printf("x after: %d\n", cursor_x);
     printf("y after: %d\n", cursor_y);
 	return total;

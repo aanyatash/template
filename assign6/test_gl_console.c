@@ -107,7 +107,7 @@ void test_console(void)
 
     // Line 1: Hello, world!
     console_printf("Hello, world!\n");
-    timer_delay(3);
+    timer_delay(5);
 
     // Add line 2: Happiness == CODING
     console_printf("Happiness");
@@ -124,7 +124,7 @@ void test_console(void)
 
     // Line 1: "Goodbye"
     console_printf("Goodbye!\n");
-	timer_delay(2);
+	timer_delay(3);
 
     // Horizontal wrapping
     console_printf("Hello, my name is Aanya Tashfeen. "); //Theoretically, this line should be long enough to wrap around.");
