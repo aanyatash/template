@@ -64,6 +64,7 @@ static void process_char(char ch)
     }
     else if (ch == '\f') {
 	    console_clear();
+		gl_swap_buffer();
     }
     else if (ch == '\b') {
 //	    if (cursor_x == 0) {
@@ -73,6 +74,7 @@ static void process_char(char ch)
 //		}
 	    cursor_x -= gl_get_char_width();
 		gl_draw_rect(cursor_x, cursor_y, gl_get_char_width(), gl_get_char_height(), background_color);
+		gl_swap_buffer();
         for( int i = 0; i < gl_get_char_width(); i ++ ) {
             for( int j = 0; j < gl_get_char_height(); j ++) {
 				img[j + cursor_y][i + cursor_x] = background_color;
@@ -99,6 +101,7 @@ static void process_char(char ch)
 			cursor_y -= line_height;
 		}
 	    gl_draw_char(cursor_x, cursor_y, ch, foreground_color);
+		gl_swap_buffer();
         for( int i = 0; i < gl_get_char_width(); i ++ ) {
             for( int j = 0; j < gl_get_char_height(); j ++) {
 			    if (gl_read_pixel(i + cursor_x, j + cursor_y) == foreground_color) {
@@ -133,29 +136,14 @@ int console_printf(const char *format, ...)
 				    gl_draw_pixel(i, j, img[j][i]);
 				}
 	        }
-			printf("x: %d\n", cursor_x);
-			printf("y: %d\n", cursor_y);
 		}
 	    ch = buf[i];
 		process_char(ch);
-//		if (buf[i] != '\n') {
-//		    gl_swap_buffer();
-//		}
-//		if (scroll == 1 && swap == 0) {
-//		    i = 0;
-//			swap = 1;
-//		}
-//		if (cur == i) {
-//		    scroll = 0;
-//		}
-//		else {
-//		    i++;
-//		}
+		//if (ch != '\n') {
+		    gl_swap_buffer();
+		//}
         i++;
 	}
-	gl_swap_buffer();
-	printf("x after: %d\n", cursor_x);
-    printf("y after: %d\n", cursor_y);
 	return total;
 
 }
