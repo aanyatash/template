@@ -67,11 +67,6 @@ static void process_char(char ch)
 	    console_clear();
     }
     else if (ch == '\b') {
-//	    if (cursor_x == 0) {
-//		    cursor_y -= line_height;
-//			cursor_x = gl_get_width() - 1;   // i think you may have to figure out how to turn all pixels to background color in rectangle glyph height/width
-//			gl_draw_rect(cursor_x, cursor_y, gl_get_char_width(), gl_get_char_height(), background_color);
-//		}
 	    cursor_x -= gl_get_char_width();
 		gl_draw_rect(cursor_x, cursor_y, gl_get_char_width(), gl_get_char_height(), background_color);
         for( int i = 0; i < gl_get_char_width(); i ++ ) {

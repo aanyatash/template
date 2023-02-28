@@ -6,24 +6,17 @@
 
 static gl_mode_t swapped = 1;
 static unsigned int full_width;
-//static unsigned int ** im; // gets virtual buffer
 
 
 void gl_init(unsigned int width, unsigned int height, gl_mode_t mode)
 {
     fb_init(width, height, 4, mode);    // use 32-bit depth always for graphics library
-    full_width = fb_get_pitch()/fb_get_depth();
-    //unsigned int (*im)[full_width] = (unsigned int (*) [full_width])fb_get_draw_buffer();
-//	if (swapped == 0){
-//		gl_swap_buffer();
-//		swapped = 1;
-//	} 
+    full_width = fb_get_pitch()/fb_get_depth(); // this is the width including padding
 }
 
 void gl_swap_buffer(void)
 {
     fb_swap_buffer();
-	//swapped = 0;
 }
 
 unsigned int gl_get_width(void)
@@ -43,10 +36,6 @@ color_t gl_color(unsigned char r, unsigned char g, unsigned char b)
 
 void gl_clear(color_t c)   // fix to make it pixel by pixel
 {
-//	if (swapped == 0){
-//		gl_swap_buffer();
-//		swapped = 1;
-//	}
     unsigned int (*im)[full_width] = fb_get_draw_buffer(); // gets virtual buffer
     for( int i = 0; i < gl_get_width(); i ++ ) {
         for( int j = 0; j < gl_get_height(); j ++) {
@@ -54,17 +43,11 @@ void gl_clear(color_t c)   // fix to make it pixel by pixel
         }
     }
 
-	//int nbytes = fb_get_pitch()*gl_get_height();
-    //memset(fb_get_draw_buffer(), c, nbytes); // fill entire framebuffer with pixels of color c
+ // fill entire framebuffer with pixels of color c
 }
 
 void gl_draw_pixel(int x, int y, color_t c)
 {
-    // check if y_offset = something
-//	if (swapped == 0){
-//		gl_swap_buffer();
-//		swapped = 1;
-//	} 
     if (x >= gl_get_width() && y >= gl_get_height()) {
 		return;
 	}
