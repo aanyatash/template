@@ -2,7 +2,7 @@
  * Filename: console.c
  * This file contains the code to intialize a console and for a console printf function.
  * Console printf contains the functionality for horizontal wrapping and vertical scrolling.
- * The vertical scrolling in this file is not very optimized and so it takes about ~3 seconds to scroll.
+ * The vertical scrolling in this file is not very optimized and so it takes about ~4 seconds to scroll.
  */
 #include "console.h"
 #include "gl.h"
@@ -150,7 +150,7 @@ static void process_char(char ch)
 			    for (int j = gl_get_height() - line_height; j < gl_get_height(); j ++) {
 				    img[j][i] = gl_read_pixel(i, j);
 			    }
-		    }
+	    }
 			cursor_y -= line_height; // cursor_y should be moved upwards now that we've scrolled
 		}
 		// Draw char into framebuffer
@@ -176,6 +176,9 @@ static void process_char(char ch)
  */
 int console_printf(const char *format, ...)
 {
+    if (strlen(format) == 0) {
+		return total;
+	}
     char buf[1024];
 	size_t bufsize = sizeof(buf);
 	memset(buf, '\0',  bufsize); // Initialize memory to nullptrs
@@ -201,7 +204,7 @@ int console_printf(const char *format, ...)
 		process_char(ch);
         i++;
 	}
-	gl_swap_buffer(); // display processed string
+	gl_swap_buffer();
 	return total;
 }
 

@@ -83,7 +83,6 @@ void test_gl(void)
 	gl_swap_buffer(); // show
 	timer_delay(3);
 
-
 	// write negative coordinates for string
     gl_clear(gl_color(0x55, 0, 0x55));
 	gl_draw_string(-60, 10, "I think that this sentence should be way too long to print", GL_AMBER);
@@ -151,8 +150,6 @@ void test_gl(void)
     gl_draw_char(60, 10, '\n', GL_AMBER);
 	gl_swap_buffer();
 
-	// clear after
-	// test if pixel writes beyond, also rectangle, and char, string
 
     // negative colors should automatically be converted to signed with no
 	// additonal processing needed
@@ -184,20 +181,30 @@ void test_gl(void)
 
 	gl_draw_string(60, 10, "Aanya Tashfeen", GL_MAGENTA);
 	timer_delay(1);
+	gl_draw_string(200, 10, "I think that this sentence should be way too long to print", GL_AMBER);
+	timer_delay(1);
 
 }
 
 void test_basic_console()
 {
+    // Used this function to test before I implemented a 2D array to store what was on the screen
+	// I just did very basic testing intially
+
     console_init(10, 30, GL_CYAN, GL_INDIGO);
 
     // Line 1: Hello, world!
-    console_printf("Hello, world!\nHi\b");
+	// Line 2: Hi
+    console_printf("Hello, world!\nHi");
     timer_delay(2);
 
-
+    // Line 1: Hello, world!
+	// Line 2: H
     console_printf("Hello, world!\nHi\b");
 
+    // Test other inputs
+    console_init(10, 20, GL_CYAN, GL_INDIGO);
+	console_printf("Hey!");
 }
 
 void test_console(void)
@@ -206,45 +213,61 @@ void test_console(void)
 
     // Line 1: Hello, world!
     console_printf("Hello, world!\n");
-    timer_delay(5);
+    timer_delay(1);
 
     // Add line 2: Happiness == CODING
     console_printf("Happiness");
     console_printf(" == ");
     console_printf("CODING\n");
-    timer_delay(2);
+    timer_delay(1);
 
     // Add 2 blank lines and line 5: I am Pi, hear me roar!
     console_printf("\n\nI am Pi, hear me v\b \broar!\n"); // typo, backspace, correction
-    timer_delay(2);
+    timer_delay(1);
 
     // Clear all lines
     console_printf("\f");
 
     // Line 1: "Goodbye"
     console_printf("Goodbye!\n");
-	timer_delay(3);
+	timer_delay(1);
 
     // Horizontal wrapping
-    console_printf("Hello, my name is Aanya Tashfeen. "); //Theoretically, this line should be long enough to wrap around.");
-	timer_delay(3);
+    console_printf("Hello, my name is Aanya Tashfeen. ");
+	timer_delay(1);
 
-    // Scrolling
-    console_printf("\n\n\n\n\n\n\nHello, my name is Aanya Tashfeen. "); //Theoretically, this line should be long enough to wrap around.");
-	timer_delay(3);
+    // Scrolling with wrapping
+    console_printf("\n\n\n\n\n\n\nHello, my name is Aanya Tashfeen. "); 
+	timer_delay(1);
 
-// just entering
+	// just scrolling
+	console_printf("\nhey");
+	timer_delay(1);
 
+   // just entering
+   console_printf("\f");
+   console_printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nhi");
+   // This will print the end result that can be dispalyed on the screen
+   // which is just hi in this case
+   console_printf(" .\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nhi\n");
+   timer_delay(1);
+
+   // only space, should do nothing
+   console_printf(" ");
+
+   // just one new line
+   console_printf("\n");
+
+   // test printf formatting
+   console_printf("%x", 70);
+   timer_delay(1);
+   console_printf("\b\n");
+
+   // spaces for scrolling
+   console_printf("Testing spaces");
+   console_printf("Testing cursor location "); // Test cursor location
+   console_printf("                                                                             ");
 }
-
-/* TODO: Add tests to test your graphics library and console.
-   For the graphics library, test both single & double
-   buffering and confirm all drawing is clipped to bounds
-   of framebuffer
-   For the console, make sure to test wrap of long lines and scrolling.
-   Be sure to test each module separately as well as in combination
-   with others.
-*/
 
 void main(void)
 {
@@ -253,8 +276,8 @@ void main(void)
     printf("Executing main() in test_gl_console.c\n");
 
     //test_fb();
-    test_gl();
-	//test_basic_console();
+    //test_gl();
+	test_basic_console();
     //test_console();
 
     printf("Completed main() in test_gl_console.c\n");
