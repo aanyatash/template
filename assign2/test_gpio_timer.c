@@ -33,9 +33,6 @@ void abort(void) {
     }
 }
 
-
-
-
 void test_gpio_set_get_function(void) {
     gpio_init();
 

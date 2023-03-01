@@ -33,7 +33,7 @@ void gpio_init(void) {
  * as unsigned int arguments. It does nothing if the pin value is invalid.
  */
 void gpio_set_function(unsigned int pin, unsigned int function) {
-   if (pin >= GPIO_PIN_FIRST && pin <= GPIO_PIN_LAST) {
+   if (pin >= GPIO_PIN_FIRST && pin <= GPIO_PIN_LAST && function >= 0 && function <= 7) {
   	 unsigned int fsel_register = pin / 10;  // Finds which FSEL register to look at
   	 unsigned int fsel_pin = (pin % 10)*3;  // Identifies the location of the bits to look at
   	 unsigned int current = gpio->fsel[fsel_register]; // Stores the current FSEL register bit value in current
