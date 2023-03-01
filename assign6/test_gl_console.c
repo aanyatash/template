@@ -269,6 +269,11 @@ void test_console(void)
    console_printf("                                                                             ");
 }
 
+/* I did a lot of testing in the shell console, to ensure wrapping and scrolling was all working.
+ * I tested just hitting enter, adding a ton of spaces, inputs that were too long, and commands like
+ * help that filled the entire screen.
+ */
+
 void main(void)
 {
     uart_init();
