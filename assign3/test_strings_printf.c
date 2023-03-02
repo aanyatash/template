@@ -381,15 +381,15 @@ static void test_snprintf(void)
 	assert(strcmp(buf, "-38") == 0);
 	assert(total == 3);
 
-	// Test negative digits for hexadecimal
-    total = snprintf(buf, bufsize, "%x", -126);
-	assert(strcmp(buf, "-7e") == 0);
-	assert(total == 3);
+//	// Test negative digits for hexadecimal
+//    total = snprintf(buf, bufsize, "%x", -126);
+//	assert(strcmp(buf, "-7e") == 0);
+//	assert(total == 3);
 
-	// Test negative number with specified min width - hex
-    total = snprintf(buf, bufsize, "%09x", -126);
-	assert(strcmp(buf, "-0000007e") == 0);
-	assert(total == 9);
+//	// Test negative number with specified min width - hex
+//    total = snprintf(buf, bufsize, "%09x", -126);
+//	assert(strcmp(buf, "-0000007e") == 0);
+//	assert(total == 9);
 
 	// Test negative number with specified min width - dec
 	total = snprintf(buf, bufsize, "%04d", -7);
@@ -452,6 +452,21 @@ static void test_snprintf(void)
 	total = snprintf(buf, 0, "Hi, %s", "Aanya");
 	assert(strcmp(buf, "") == 0);
 	assert(total = 9);
+
+    // big hex value 
+	total = snprintf(buf, 10, "%x", 0x9abcdef0);
+//	int digit = 0x9abcdef0;
+//		if (digit < 0) {
+//			digit = ~((-1*digit)-1);
+//			printf("here");
+//		}
+//	printf("%d\n", digit);
+	printf("%s\n", buf);
+	assert(strcmp(buf, "9abcdef0") == 0);
+
+    // big hex value
+	total = snprintf(buf, 20,"%x", 0xffffffff);
+	assert(strcmp(buf, "ffffffff") == 0);
 
 }
 

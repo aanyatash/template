@@ -239,7 +239,7 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 				}
 			    else if (*letter == 'x') { // hexadecimal digit formatting code
 				    int val = va_arg(args, int);
-				    signed_to_base(max + i, maxsize - i, val, 16, min_width);
+				    unsigned_to_base(max + i, maxsize - i, val, 16, min_width);
 				    format_i += int_length(min_width) + 1;
 			    }
 			}
@@ -249,7 +249,7 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 			}
 			else if (format[format_i + 1] == 'x') { // hexadecimal digit formatting code
 				int val = va_arg(args, int);
-				signed_to_base(max + i, maxsize - i, val, 16, 0);
+				signed_to_base(max + i, maxsize - i, val, 16, 0);   // problem: it converts it to a signed integer
 			}
 			else if (format[format_i + 1] == 'p') { // pointer address formatting code
 				unsigned int val = va_arg(args, unsigned int);
@@ -269,7 +269,9 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 	}
 
 	max[i] = '\0';
-	buf[0] = '\0'; // strlcat only works on strings with nullptr
+	if (bufsize != 0) {
+	    buf[0] = '\0'; // strlcat only works on strings with nullptr
+	}
 
 	int total = strlcat(buf, max, bufsize);
 	return total;
