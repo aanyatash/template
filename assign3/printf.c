@@ -68,9 +68,9 @@ void num_to_base_str(char *str, unsigned int val, int base) {
     unsigned int length = int_length(val);
 	char temp[length + 1]; // temporary array to store reverse conversion
 	memset(temp, '\0', sizeof(temp)); // Initialize memory to nullptrs
-	int add_char = val;
+	unsigned int add_char = val;
 	int i = 0;
-	int digit = 0;
+	unsigned int digit = 0;
 
 	// Account for val equals 0 case
 	if (add_char == 0) {
@@ -248,8 +248,8 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 				signed_to_base(max + i, maxsize - i, val, 10, 0);
 			}
 			else if (format[format_i + 1] == 'x') { // hexadecimal digit formatting code
-				int val = va_arg(args, int);
-				signed_to_base(max + i, maxsize - i, val, 16, 0);   // problem: it converts it to a signed integer
+				unsigned int val = va_arg(args, unsigned int);
+				unsigned_to_base(max + i, maxsize - i, val, 16, 0);   // problem: it converts it to a signed integer
 			}
 			else if (format[format_i + 1] == 'p') { // pointer address formatting code
 				unsigned int val = va_arg(args, unsigned int);
@@ -257,7 +257,7 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 				max[i] = '0';
 				max[i+1] = 'x';
 				signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 8); 
-				}
+		    }
 			i = strlen(max); // Only adds to end of max
 			format_i += 2; // Skips %f on format string, where f is formatting code
 		}

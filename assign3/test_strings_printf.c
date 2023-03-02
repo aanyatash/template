@@ -455,13 +455,6 @@ static void test_snprintf(void)
 
     // big hex value 
 	total = snprintf(buf, 10, "%x", 0x9abcdef0);
-//	int digit = 0x9abcdef0;
-//		if (digit < 0) {
-//			digit = ~((-1*digit)-1);
-//			printf("here");
-//		}
-//	printf("%d\n", digit);
-	printf("%s\n", buf);
 	assert(strcmp(buf, "9abcdef0") == 0);
 
     // big hex value
