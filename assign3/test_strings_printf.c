@@ -467,13 +467,13 @@ static void test_snprintf(void)
 }
 
 void test_decode_instruction(void) {
-    char buf[20];
+    char buf[100];
 	size_t bufsize = sizeof(buf);
 
-    const unsigned int add = 0xe0843005;
-    const unsigned int sub = 0xe24bd00c;
-    const unsigned int mov = 0xe3a0006b;
-    const unsigned int bne = 0x1afffffa;
+    unsigned int add = 0xe0843005;
+    unsigned int sub = 0xe24bd00c;
+    unsigned int mov = 0xe3a0006b;
+    unsigned int bne = 0x1afffffa;
 
     decode_instruction(buf, bufsize, &add);
 }

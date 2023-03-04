@@ -10,6 +10,7 @@
 #include "uart.h"
 
 void decode_instruction(char* buf, size_t bufsize, unsigned int *addr);
+static void instructions_helper(char* buf, size_t bufsize, const char *format, ...); 
 
 // format to print in: instr dst, op1, op2
 
@@ -264,15 +265,16 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 			}
 			else if (format[format_i + 1] == 'p') { // pointer address formatting code
 				unsigned int val = va_arg(args, unsigned int);
-//			    if (format[format_i + 1] == 'I') {
-//				    format_i += 1;
-//				}
-			//	else {
+		        if (format[format_i + 2] == 'I') {
+				    format_i += 1;
+					decode_instruction(max + i, maxsize - i,(unsigned int *) val);
+				}
+				else {
 				    // appends address after '0x'
 				    max[i] = '0';
 				    max[i+1] = 'x';
 				    signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 8); 
-			//	}
+				}
 		    }
 			i = strlen(max); // Only adds to end of max
 			format_i += 2; // Skips %f on format string, where f is formatting code
@@ -380,6 +382,8 @@ static const char *cond[16] = {"eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc",
 static const char *opcodes[16] = {"and", "eor", "sub", "rsb", "add", "adc", "sbc", "rsc",
                                   "tst", "teq", "cmp", "cmn", "orr", "mov", "bic", "mvn"};
 
+static const char *sh[4] = {"LSL", "LSR", "ASR", "ROR"};
+
 //static const char
 
 // bit masking for data prpcessing instruction
@@ -406,8 +410,58 @@ struct insn  {
 
 // format to print in: instr dst, op1, op2
 
+void instructions_helper(char* buf, size_t bufsize, const char *format, ...) {
+    // create the list of args i need
+	//call vsnprintf to edit buf
+    va_list args;
+	va_start(args, format); // indicates that list of args starts after format param
+	int total = vsnprintf(buf, bufsize, format, args);
+	va_end(args);
+
+}
+
+// when put in vsnprintf
+// this function should return a format string and also the arguments list
+// if this doesn't work you could do a bunch of strlcat statements
 void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) { 
     // addr is address of instruction
+	if (bufsize != 0) {
+	    buf[0] = '\0';
+	}
+	if (bufsize == 0 || bufsize == 1) {
+		return;
+	}
     struct insn in = *(struct insn *)addr;  // derefernce address to get code
-    printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
+
+    // first take care of data processing instructions
+    // case for regular decoding instruction, when immediate is 0 and there is no register rotation/shifting
+	if (in.kind == 0) {
+	    // no immediate value and no shifitng on register value
+		if (in.imm == 0 && in.one == 0) {
+		    instructions_helper(buf, bufsize, "%s%s r%d, r%d, r%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.reg_op2);
+		}
+
+        // There is an immediate value but no shifting
+		else if (in.imm == 1 && in.shift == 0 && in.shift_op == 0) {
+		    instructions_helper(buf, bufsize, "%s%s r%d, r%d, #%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.reg_op2);
+
+		}
+        
+		// no immediate value but there is shifting on a register value
+		else if (in.imm == 0 && in.one == 1) {
+		    instructions_helper(buf, bufsize, "%s%s r%d, r%d, r%d, %s #%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.reg_op2, sh[in.shift_op], in.shift);
+		}
+
+		// immediate value and sfiting involved
+		else if (in.imm == 1 && in.shift != 0) {
+		     instructions_helper(buf, bufsize, "%s%s r%d, r%d, #%d, %s #%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.imm, sh[in.shift_op], in.shift);
+		}
+
+	}
+
+// 
+//    printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
+//	printf("shift %d shift_op %d\n", in.shift, in.shift_op);
+//	printf("%s\n", buf);
+
 }
