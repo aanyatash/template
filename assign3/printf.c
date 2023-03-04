@@ -384,6 +384,8 @@ static const char *opcodes[16] = {"and", "eor", "sub", "rsb", "add", "adc", "sbc
 
 static const char *sh[4] = {"LSL", "LSR", "ASR", "ROR"};
 
+static const char *branch[4] = {"b", "bl", "bx", "blx"};
+
 //static const char
 
 // bit masking for data prpcessing instruction
@@ -457,6 +459,9 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		     instructions_helper(buf, bufsize, "%s%s r%d, r%d, #%d, %s #%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.imm, sh[in.shift_op], in.shift);
 		}
 
+	}
+	if (in.kind == 0b10) {
+		    instructions_helper(buf, bufsize, "%s%s r%d, r%d, r%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.reg_op2);
 	}
 
 // 
