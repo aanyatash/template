@@ -9,6 +9,53 @@
 #include "strings.h"
 #include "uart.h"
 
+
+/* From here to end of file is some sample code and suggested approach
+ * for those of you doing the disassemble extension. Otherwise, ignore!
+ *
+ * The struct insn bitfield is declared using exact same layout as bits are organized in
+ * the encoded instruction. Accessing struct.field will extract just the bits
+ * apportioned to that field. If you look at the assembly the compiler generates
+ * to access a bitfield, you will see it simply masks/shifts for you. Neat!
+*/
+
+static const char *cond[16] = {"eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc",
+                               "hi", "ls", "ge", "lt", "gt", "le", "", ""};
+static const char *opcodes[16] = {"and", "eor", "sub", "rsb", "add", "adc", "sbc", "rsc",
+                                  "tst", "teq", "cmp", "cmn", "orr", "mov", "bic", "mvn"};
+
+static const char
+
+// bit masking for data prpcessing instruction
+struct insn  {
+    uint32_t reg_op2:4; // Rm is R3 for additional register
+    uint32_t one:1; // default 0
+    uint32_t shift_op: 2;  // operation shift - two bits could be LSL or LSR
+    uint32_t shift: 5;  // shift immediate value - 5 bit shift operation
+    uint32_t reg_dst:4; // destination register
+    uint32_t reg_op1:4; // source register
+    uint32_t s:1;      // is the flag set? i.e. is condition met? 
+    uint32_t opcode:4; // instruction to execute
+    uint32_t imm:1;  // Is there an immediate value?
+    uint32_t kind:2; // data processing or load/store?
+    uint32_t cond:4; // conditional suffix
+};
+
+// format to print in: instr dst, op1, op2
+
+//static void sample_use(unsigned int *addr) { // address of instruction
+//    struct insn in = *(struct insn *)addr;  // derefernce address to get code
+//    printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
+//}
+
+static void decode_instruction(, char* buf, size_t, budfize, unsigned int *addr) { 
+    // addr is address of instruction
+    struct insn in = *(struct insn *)addr;  // derefernce address to get code
+    printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
+}
+
+
+
 /** Prototypes for internal helpers.
  * Typically these would be qualified as static (private to module)
  * but, in order to call them from the test program, we declare them externally
@@ -253,10 +300,15 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 			}
 			else if (format[format_i + 1] == 'p') { // pointer address formatting code
 				unsigned int val = va_arg(args, unsigned int);
-				// appends address after '0x'
-				max[i] = '0';
-				max[i+1] = 'x';
-				signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 8); 
+//			    if (format[format_i + 1] == 'I') {
+//				    format_i += 1;
+//				}
+				else {
+				    // appends address after '0x'
+				    max[i] = '0';
+				    max[i+1] = 'x';
+				    signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 8); 
+				}
 		    }
 			i = strlen(max); // Only adds to end of max
 			format_i += 2; // Skips %f on format string, where f is formatting code
