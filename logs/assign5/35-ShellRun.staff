@@ -1,0 +1,17 @@
+CS107E_AUTO: START TEST
+
+Welcome to the CS107E shell. Remember to type on your PS/2 keyboard!
+Pi> help peek
+   peek [addr]              print contents of memory at address
+Pi> echo I love my Raspberry Pi!
+I love my Raspberry Pi! 
+Pi> 
+Pi> peek 0x8000
+0x00008000:   e3a0d302
+Pi> poke 0x8000 4222
+Pi> peek 0x8000
+0x00008000:   0000107e
+Pi> reboot
+Rebooting Pi, see ya at the bootloader!
+
+rpi-run.py: received EOT from Pi. Detaching.

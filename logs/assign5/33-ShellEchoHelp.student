@@ -1,0 +1,27 @@
+CS107E_AUTO: START TEST
+
+CS107E_AUTO: call shell_evaluate("echo")
+
+CS107E_AUTO: call shell_evaluate("echo CS107e is my favoritist class ever!!!")
+CS107e is my favoritist class ever!!! 
+CS107E_AUTO: call shell_evaluate("echo      tokens     with extra    spaces in between are not a problem   ")
+tokens with extra spaces in between are not a problem 
+
+=============================================
+ **********  Mini-Valgrind Alert  ********** 
+=============================================
+Attempt to free address 0x7e7e7e7e that is not within heap segment (was not allocated via malloc!)
+CS107E_AUTO: call shell_evaluate("echo supercalifragilisticexpialidocious")
+supercalifragilisticexpialidocious 
+CS107E_AUTO: call shell_evaluate("echolocate")
+error: no such command 'echolocate'.
+CS107E_AUTO: call shell_evaluate("help echo")
+Usage: echo [args]
+Description: print arguments
+CS107E_AUTO: call shell_evaluate("help poke")
+Usage: poke [addr] [val]
+Description: store value into memory at address
+CS107E_AUTO: call shell_evaluate("help debugging")
+error: no such command 'debugging'
+
+CS107E_AUTO: END TEST
