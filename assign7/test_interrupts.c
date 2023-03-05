@@ -3,7 +3,8 @@
 #include "printf.h"
 #include "timer.h"
 #include "uart.h"
-
+#include "gpio_interrupts.h"
+#include "interrupts.h"
 
 /*
  * This function tests the behavior of the assign5 ps2
@@ -46,10 +47,16 @@ void main(void)
     gpio_init();
     timer_init();
     uart_init();
+    interrupts_init();
+
     keyboard_init(KEYBOARD_CLOCK, KEYBOARD_DATA);
 
-    // check_interrupts_received();
+	interrupts_global_enable();
 
-    test_read_delay();
+    check_interrupts_received();
+    //printf("%d", ps2_read(dev));
+
+
+    //test_read_delay();
     uart_putchar(EOT);
 }
