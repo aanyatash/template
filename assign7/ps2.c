@@ -12,6 +12,7 @@
 #include "uart.h"
 #include "printf.h"
 #include "gpio_interrupts.h"
+#include "ringbuffer.h"
 
 static void handle_ps2(unsigned int pc, void *dev);
 
@@ -31,6 +32,10 @@ struct ps2_device {
     unsigned int clock;
     unsigned int data;
 	unsigned int calls;
+	unsigned int number;
+	unsigned int parity;
+	unsigned int bit;
+	rb_t *rb;
 };
 
 // Creates a new PS2 device with a particular clock and data pin,
@@ -42,7 +47,11 @@ ps2_device_t *ps2_new(unsigned int clock_gpio, unsigned int data_gpio)
 	gpio_interrupts_init();
 
     dev->clock = clock_gpio;
-	dev->calls = 0;
+	dev->rb = rb_new();
+	dev->calls = -2;
+	dev->number = 0;
+	dev->parity = 0;
+	dev->bit = 0;
     gpio_set_input(dev->clock);
     gpio_set_pullup(dev->clock);
 
@@ -67,65 +76,70 @@ ps2_device_t *ps2_new(unsigned int clock_gpio, unsigned int data_gpio)
 //}
 
 static void handle_ps2(unsigned int pc, void *dev){
-  if (gpio_check_and_clear_event(((ps2_device_t *) dev)->clock)) {
-        ((ps2_device_t *) dev)->calls += 1;
-        uart_putchar('+');
-  }
+    // check for clock falling edge
+    if (gpio_check_and_clear_event(((ps2_device_t *) dev)->clock)) {
+		((ps2_device_t *) dev)->calls += 1;
+    }
+	// if no falling edge, read again
+	// do we have to reset?
+	else {
+		return;
+	}
+    if (((ps2_device_t *)dev)->calls == -1) {
+		// This ensures that the start bit is correctly
+    	// a 0.
+		if (gpio_read(((ps2_device_t *) dev)->data) != 0) {
+		     ((ps2_device_t *) dev)->calls = -2;
+		}
+    }
+    // Reads the next 10 bits after start bit
+	// dev->calls should be 0 and above here
+    else {
+		// Next 8 bits received are the bits for data we want to use
+		if (((ps2_device_t *) dev)->calls < 8) {
+		    ((ps2_device_t *) dev)->bit = (gpio_read(((ps2_device_t *) dev)->data) ? 1 : 0);
+		    ((ps2_device_t *) dev)->parity += ((ps2_device_t *) dev)->bit;
+			// LSB first received
+		    ((ps2_device_t *) dev)->number += ((ps2_device_t *) dev)->bit << ((ps2_device_t *) dev)->calls; 
+		}
+		// The 10th bit received is the parity bit
+		else if (((ps2_device_t *) dev)->calls == 8) {
+		    ((ps2_device_t *) dev)->parity += (gpio_read(((ps2_device_t *) dev)->data) ? 1 : 0);
+		    // Total number of ones must be odd, if it isn't
+		    // discard the bits and start reading again
+		    if (((ps2_device_t *) dev)->parity % 2 == 0) {
+				((ps2_device_t *) dev)->calls = -2;
+				((ps2_device_t *) dev)->number = 0;
+				((ps2_device_t *) dev)->parity = 0;
+				((ps2_device_t *) dev)->bit = 0;
+		    }
+		}
+		// The 11th bit recieved must be the stop bit and must be 1
+		// If it is not, loop starts over and data should be read again
+		else if (((ps2_device_t *) dev)->calls == 9) {
+		    if (gpio_read(((ps2_device_t *) dev)->data) == 1) {
+				rb_enqueue(((ps2_device_t *) dev)->rb, ((ps2_device_t *) dev)->number);
+		    }
+ 		    ((ps2_device_t *) dev)->calls = -2;
+		    ((ps2_device_t *) dev)->number = 0;
+		    ((ps2_device_t *) dev)->parity = 0;
+		    ((ps2_device_t *) dev)->bit = 0;
+		}
+    }
+
+//    if (gpio_check_and_clear_event(((ps2_device_t *) dev)->clock)) {
+//		((ps2_device_t *) dev)->calls += 1;
+//    }
 }
 // This function reads a single ps2 scan code. It always returns a correctly received scan code:
 // if an error occurs (e.g., start bit not detected, parity is wrong), the
 // function should read another scan code.
 unsigned char ps2_read(ps2_device_t *dev)
 {
-     while (1) {
-	 // FIX INDENTATION!!
-	    int counter = -1;
-	    //if (counter != dev->calls) {
-	    unsigned int number = 0;
-		unsigned int parity = 0;
-		unsigned int bit = 0;
-		//counter = dev->calls;
-		while (counter != dev->calls) {
-    		counter = dev->calls;
-		    //wait_for_falling_clock_edge(dev->clock);
-			// This ensures that the start bit is correctly
-			// a 0.
-			if (gpio_read(dev->data) == 0) {
-				break;
-			}
-		}
-		// Reads the next 10 bits after start bit
-		for (int i = 0; i < 10; i++) {
-		    // Only reads data lines once the clock edge falls
-			if (counter != dev->calls) {
-			    counter = dev->calls;
-		    //wait_for_falling_clock_edge(dev->clock);
-			// Next 8 bits received are the bits for data we want to use
-			if (i < 8) {
-			    bit = (gpio_read(dev->data) ? 1 : 0);
-				parity += bit;
-				number += bit << i; // LSB first received
-			}
-			// The 10th bit received is the parity bit
-			if (i == 8) {
-			    parity += (gpio_read(dev->data) ? 1 : 0);
-				// Total number of ones must be odd, if it isn't
-				// discrad the bits and start reading again
-				if (parity % 2 == 0) {
-				    break;
-				}
-			}
-			// The 11th bit recieved must be the stop bit and must be 1
-			// If it is not, loop starts over and data should be read again
-			if (i == 9) {
-				if (gpio_read(dev->data) == 1) {
-				    return number;
-				}
-			}
-			}
-		}
-    //}
-    }
-    return 0xFF;
+    while (rb_empty(dev->rb)) {/* spin */ }
+	int* temp = malloc(4);
+	rb_dequeue(dev->rb, temp);
+	free(temp);
+    return *temp;
 }
 
