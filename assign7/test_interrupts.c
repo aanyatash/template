@@ -53,10 +53,9 @@ void main(void)
 
 	interrupts_global_enable();
 
-    check_interrupts_received();
-    //printf("%d", ps2_read(dev));
+    //check_interrupts_received();
 
 
-    //test_read_delay();
+    test_read_delay();
     uart_putchar(EOT);
 }
