@@ -386,9 +386,17 @@ static const char *sh[4] = {"LSL", "LSR", "ASR", "ROR"};
 
 static const char *branch[4] = {"b", "bl", "bx", "blx"};
 
+static const char *mem[2] = {"str", "ldr"};
+
+static const char *w[2] = {"", "!"};
+
+static const char *u[2] = {"-", ""};
+
+static const char *b[2] = {"", "b"};
+
 //static const char
 
-// bit masking for data prpcessing instruction
+// bit masking for data processing instruction
 struct insn  {
     uint32_t reg_op2:4; // Rm is R3 for additional register
     uint32_t one:1; // default 0
@@ -402,6 +410,40 @@ struct insn  {
     uint32_t kind:2; // data processing or load/store?
     uint32_t cond:4; // conditional suffix
 };
+
+// bit masking for branch instruction
+//struct branch_insn  {
+//    uint32_t imm15:15; // Rm is R3 for additional register
+//    uint32_t R:1; // default 0
+//    uint32_t Rn:4;  // operation shift - two bits could be LSL or LSR
+//	uint32_t opcode:4,
+//    uint32_t op_kind:2; // instruction to execute
+//    uint32_t kind:2; // data processing or load/store?
+//    uint32_t cond:4; // conditional suffix
+//};
+
+// bit masking for load/store memory instruction
+struct mem_insn  {
+    uint32_t shift_imm: 12;  // shift immediate value
+	uint32_t reg_src:4; // destination register
+    uint32_t reg_dst:4; // source register
+    uint32_t L:1; // if 1 ldr, else str
+    uint32_t W:1; // instruction to execute
+    uint32_t B:1; // instruction to execute
+    uint32_t U:1; // instruction to execute
+    uint32_t P:1; // instruction to execute
+    uint32_t imm:1;  // Is there an immediate value?
+    uint32_t kind:2; // data processing or load/store?
+    uint32_t cond:4; // conditional suffix
+};
+
+struct shift {
+    uint32_t reg_op2:4; // Rm is R3 for additional register
+    uint32_t one:1; // default 0
+    uint32_t shift_op: 2;  // operation shift - two bits could be LSL or LSR
+    uint32_t shift: 5;  // shift immediate value - 5 bit shift operation
+};
+
 
 // format to print in: instr dst, op1, op2
 
@@ -460,12 +502,55 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		}
 
 	}
-	if (in.kind == 0b10) {
-		    instructions_helper(buf, bufsize, "%s%s r%d, r%d, r%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.reg_op2);
+	// load instructions
+	else if (in.kind == 0b01) {
+	    struct mem_insn mem_in = *(struct mem_insn *)addr;
+		if (mem_in.P == 1) {
+		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
+		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, w[mem_in.W]);
+		    }
+		    else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
+		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s, #%s%d]%s", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
+		    }
+			else {
+			    unsigned int store_shift = mem_in.shift_imm;
+			    unsigned int *shift = &store_shift;
+		        struct shift in_shift = *(struct shift *)shift;
+            	//struct shift in_shift = (struct shift) mem_in.shift_imm;
+		    if (mem_in.imm == 1 && in_shift.shift == 0) {
+				//struct shift in_shift = mem_in.shift_imm;
+		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s, r%s]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, in_shift.reg_op2, w[mem_in.W]);
+		    }
+		    else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
+		        //struct shift in_shift = mem_in.shift_imm;
+		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s, %s #%s%d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
+		    }  
+			}
+		}
+		else if (mem_in.P == 0) {
+		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
+		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s]", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src);
+		    }
+		    else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
+		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s], #%s%d", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, u[mem_in.U], mem_in.shift_imm);
+		    }
+			else {
+			    unsigned int store_shift = mem_in.shift_imm;
+			    unsigned int *shift = &store_shift;
+		        struct shift in_shift = *(struct shift *)shift;
+		    if (mem_in.imm == 1 && in_shift.shift == 0) {
+		       // struct shift in_shift = mem_in.shift_imm;
+		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s], r%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, in_shift.reg_op2);
+		    }
+		    else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
+		        //struct shift in_shift = mem_in.shift_imm;
+		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s], %s #%s%d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm);
+		    }
+			}
+		}
 	}
-
-// 
-//    printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
+ 
+//  printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
 //	printf("shift %d shift_op %d\n", in.shift, in.shift_op);
 //	printf("%s\n", buf);
 
