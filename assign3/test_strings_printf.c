@@ -462,7 +462,15 @@ static void test_snprintf(void)
 	// Pointer
 	char point[20];
     total = snprintf(point, 20, "%p", (void *)0x7f94);
+	//printf("%s", point);
     assert(strcmp(point, "0x00007f94") == 0);
+	assert(total == 10);
+
+	total = snprintf(point, 20, "%p", ((void *)0));
+	//printf("%s", point);
+    assert(strcmp(point, "0x00000000") == 0);
+	assert(total == 10);
+
 
 }
 

@@ -11,6 +11,7 @@
 
 void decode_instruction(char* buf, size_t bufsize, unsigned int *addr);
 static void instructions_helper(char* buf, size_t bufsize, const char *format, ...); 
+static int rotate(int immediate, int rot); 
 
 // format to print in: instr dst, op1, op2
 
@@ -273,7 +274,7 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 				    // appends address after '0x'
 				    max[i] = '0';
 				    max[i+1] = 'x';
-				    signed_to_base(max + i + 2, maxsize - i - 1, val, 16, 8); 
+				    unsigned_to_base(max + i + 2, maxsize - i - 1, val, 16, 8); 
 				}
 		    }
 			i = strlen(max); // Only adds to end of max
@@ -473,6 +474,7 @@ void instructions_helper(char* buf, size_t bufsize, const char *format, ...) {
 
 
 int rotate(int immediate, int rot) {
+    rot = (rot*2) % 32;
     int shift = immediate >> rot;
     int rotate = immediate << (32 - rot);
     return shift | rotate;
@@ -534,7 +536,6 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 				// There is an immediate value but no shifting
 				else if (in.imm == 1) {
 				    unsigned int rot = in.shift >> 1;
-				    //rot = rot << 1;
 				    unsigned int immediate = (in.shift & 0b0001) << 7 | in.shift_op << 5 | in.one << 4 | in.reg_op2;
 				    unsigned int val = immediate;
 				    if (rot != 0) {
@@ -568,9 +569,10 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		else if (in.imm == 1) {
 		    unsigned int rot = in.shift >> 1;
 			//rot = rot << 1;
-			unsigned int immediate = (in.shift & 0b0001) << 7 | in.shift_op << 5 | in.one << 4 | in.reg_op2;
-			unsigned int val = immediate;
+			int immediate = (in.shift & 0b0001) << 7 | in.shift_op << 5 | in.one << 4 | in.reg_op2;
+			int val = immediate;
 			printf("%d\n", val);
+			printf("%d\n", rot);
 			if (rot != 0) {
 			    val = rotate(immediate, rot);
 			}
