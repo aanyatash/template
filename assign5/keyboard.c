@@ -8,6 +8,7 @@
 
 static ps2_device_t *dev;
 static unsigned int modifier = 0;
+static unsigned int press = 0;
 
 /* This function initialized the keyboard and the clock and data gpio pins.
  */
@@ -130,14 +131,19 @@ key_event_t keyboard_read_event(void)
 		else if (read.keycode == 0x58) {
 		    // Check if caps lock is currently off by checking active modifiers
 			// Only turn on if it isn't on - add to active modifiers
-		    if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == 0 && read.what == KEY_PRESS) {
+			if (read.what == KEY_RELEASE) {
+				press = 0;
+			}
+		    if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == 0 && read.what == KEY_PRESS && press == 0) {
 		 	    modifier = modifier | KEYBOARD_MOD_CAPS_LOCK;
+				press = 1;
 		    }
 
 			// Check if caps lock is on
 			// If it is on, turn it off - remove from active modifiers
-		    else if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == KEYBOARD_MOD_CAPS_LOCK && read.what == KEY_PRESS) {
+		    else if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == KEYBOARD_MOD_CAPS_LOCK && read.what == KEY_PRESS && press == 0) {
 			    modifier = modifier & ~KEYBOARD_MOD_CAPS_LOCK;
+				press = 1;
 		    }
 		}
 		// Read until a non-modifier key is pressed, so an event can be generated

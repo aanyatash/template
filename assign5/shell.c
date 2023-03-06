@@ -159,7 +159,7 @@ int cmd_poke(int argc, const char *argv[]) {
 	}
 	// Converts given value to a number, so it can be stored in the address
 	unsigned int val = strtonum(argv[2], NULL);
-	if (val == 0) {
+	if (strcmp(argv[2], "0") != 0 && val == 0) {
 		shell_printf("error: poke cannot convert '%s'\n", argv[2]);
 		return -1;
 	}
@@ -311,6 +311,9 @@ int shell_evaluate(const char *line)
 			// Once command is executed, exit out of function
 			return result;
 		}
+	}
+	if (strcmp(tokens[0], "") == 0) {
+		return -1;
 	}
     // If we didn't return in for loop, command is not found
 	shell_printf("error: no such command '%s'.\n", tokens[0]);
