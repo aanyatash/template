@@ -387,7 +387,7 @@ static const char *reg[16] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r
 
 static const char *sh[4] = {"LSL", "LSR", "ASR", "ROR"};
 
-static const char *branch[4] = {"b", "bl", "bx", "blx"};
+static const char *branch[2] = {"b", "bl"};
 
 static const char *mem[2] = {"str", "ldr"};
 
@@ -415,15 +415,13 @@ struct insn  {
 };
 
 // bit masking for branch instruction
-//struct branch_insn  {
-//    uint32_t imm15:15; // Rm is R3 for additional register
-//    uint32_t R:1; // default 0
-//    uint32_t Rn:4;  // operation shift - two bits could be LSL or LSR
-//	uint32_t opcode:4,
-//    uint32_t op_kind:2; // instruction to execute
-//    uint32_t kind:2; // data processing or load/store?
-//    uint32_t cond:4; // conditional suffix
-//};
+struct branch_insn  {
+    int32_t offset:24; // instruction to execute
+	uint32_t link:1;
+	uint32_t one:1;
+    uint32_t kind:2; // data processing or load/store?
+    uint32_t cond:4; // conditional suffix
+};
 
 // bit masking for load/store memory instruction
 struct mem_insn  {
@@ -462,23 +460,16 @@ void instructions_helper(char* buf, size_t bufsize, const char *format, ...) {
 	//call vsnprintf to edit buf
     va_list args;
 	va_start(args, format); // indicates that list of args starts after format param
-	int total = vsnprintf(buf, bufsize, format, args);
+	vsnprintf(buf, bufsize, format, args);
 	va_end(args);
 
 }
 
 
 int rotate(int immediate, int rot) {
-
-    //shifted = 0x12345678 >> 4 = 0x01234567
     int shift = immediate >> rot;
-
-    //rot_bits = (0x12345678 << 28) = 0x80000000
     int rotate = immediate << (32 - rot);
-
-    //combined = 0x80000000 | 0x01234567 = 0x81234567
     return shift | rotate;
-
 }
 
 
@@ -494,6 +485,11 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		return;
 	}
     struct insn in = *(struct insn *)addr;  // derefernce address to get code
+
+	if (in.kind == 0b10 && in.imm == 1) {
+	    struct branch_insn branch_in = *(struct branch_insn *)addr;
+		instructions_helper(buf, bufsize, "%s%s 0x%x", branch[branch_in.link], cond[branch_in.cond], (branch_in.offset << 2) + ((unsigned int) addr + 8));
+	}
 
     // first take care of data processing instructions
     // case for regular decoding instruction, when immediate is 0 and there is no register rotation/shifting
