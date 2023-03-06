@@ -382,6 +382,9 @@ static const char *cond[16] = {"eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc",
 static const char *opcodes[16] = {"and", "eor", "sub", "rsb", "add", "adc", "sbc", "rsc",
                                   "tst", "teq", "cmp", "cmn", "orr", "mov", "bic", "mvn"};
 
+static const char *reg[16] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10",
+						      "fp", "ip", "sp", "lr", "pc"};								
+
 static const char *sh[4] = {"LSL", "LSR", "ASR", "ROR"};
 
 static const char *branch[4] = {"b", "bl", "bx", "blx"};
@@ -464,6 +467,21 @@ void instructions_helper(char* buf, size_t bufsize, const char *format, ...) {
 
 }
 
+
+int rotate(int immediate, int rot) {
+
+    //shifted = 0x12345678 >> 4 = 0x01234567
+    int shift = immediate >> rot;
+
+    //rot_bits = (0x12345678 << 28) = 0x80000000
+    int rotate = immediate << (32 - rot);
+
+    //combined = 0x80000000 | 0x01234567 = 0x81234567
+    return shift | rotate;
+
+}
+
+
 // when put in vsnprintf
 // this function should return a format string and also the arguments list
 // if this doesn't work you could do a bunch of strlcat statements
@@ -480,25 +498,73 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
     // first take care of data processing instructions
     // case for regular decoding instruction, when immediate is 0 and there is no register rotation/shifting
 	if (in.kind == 0) {
-	    // no immediate value and no shifitng on register value
-		if (in.imm == 0 && in.one == 0) {
-		    instructions_helper(buf, bufsize, "%s%s r%d, r%d, r%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.reg_op2);
+		if (strcmp(opcodes[in.opcode], "mov") == 0 || strcmp(opcodes[in.opcode], "mvn") == 0 || strcmp(opcodes[in.opcode], "cmp") == 0 || strcmp(opcodes[in.opcode], "cmn") == 0 || 
+				strcmp(opcodes[in.opcode], "tst") == 0 || strcmp(opcodes[in.opcode], "teq") == 0)  {
+				unsigned int reg1 = in.reg_op1;
+				if (strcmp(opcodes[in.opcode], "mov") == 0) {
+				    reg1 = in.reg_dst;
+				}    
+				// no immediate value and no shifting on register value
+				// two registers
+				if (in.imm == 0 && in.shift == 0 && in.one == 0) {
+				    instructions_helper(buf, bufsize, "%s%s %s, %s", opcodes[in.opcode], cond[in.cond], reg[reg1], reg[in.reg_op2]);
+				}
+
+				// no immediate value, shifting operation required on number
+				// two registers plus a shifted immediate value
+				else if (in.imm == 0 && in.shift != 0 && in.one == 0) {
+				    instructions_helper(buf, bufsize, "%s%s %s, %s, %s #%d", opcodes[in.opcode], cond[in.cond], reg[reg1], reg[in.reg_op2], sh[in.shift_op], in.shift);
+				}
+
+				// no immediate value but there is shifting on a register value
+				// two registers plus a shifted register
+				else if (in.imm == 0 && in.one == 1) {
+				    instructions_helper(buf, bufsize, "%s%s %s, %s, %s %s", opcodes[in.opcode], cond[in.cond], reg[reg1], reg[in.reg_op2], sh[in.shift_op], reg[in.shift >> 1]);
+				}
+
+				// There is an immediate value but no shifting
+				else if (in.imm == 1) {
+				    unsigned int rot = in.shift >> 1;
+				    //rot = rot << 1;
+				    unsigned int immediate = (in.shift & 0b0001) << 7 | in.shift_op << 5 | in.one << 4 | in.reg_op2;
+				    unsigned int val = immediate;
+				    if (rot != 0) {
+						val = rotate(immediate, rot);
+				    }
+						instructions_helper(buf, bufsize, "%s%s %s, #%d", opcodes[in.opcode], cond[in.cond], reg[reg1], val);
+				}
+		}
+    
+	    // no immediate value and no shifting on register value
+		// three registers
+		else if (in.imm == 0 && in.shift == 0 && in.one == 0) {
+		    instructions_helper(buf, bufsize, "%s%s %s, %s, %s", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], reg[in.reg_op2]);
+		}
+
+		// no immediate value, shifting operation required on number
+		// two registers plus a shifted immediate value
+		// THIRD REG?
+		else if (in.imm == 0 && in.shift != 0 && in.one == 0) {
+		    instructions_helper(buf, bufsize, "%s%s %s, %s, %s, %s #%d", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], reg[in.reg_op2], sh[in.shift_op], in.shift);
+		}
+
+		// no immediate value but there is shifting on a register value
+		// two registers plus a shifted register
+		// THIRD REG?
+		else if (in.imm == 0 && in.one == 1) {
+		    instructions_helper(buf, bufsize, "%s%s %s, %s, %s, %s %s", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], reg[in.reg_op2], sh[in.shift_op], reg[in.shift >> 1]);
 		}
 
         // There is an immediate value but no shifting
-		else if (in.imm == 1 && in.shift == 0 && in.shift_op == 0) {
-		    instructions_helper(buf, bufsize, "%s%s r%d, r%d, #%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.reg_op2);
-
-		}
-        
-		// no immediate value but there is shifting on a register value
-		else if (in.imm == 0 && in.one == 1) {
-		    instructions_helper(buf, bufsize, "%s%s r%d, r%d, r%d, %s #%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.reg_op2, sh[in.shift_op], in.shift);
-		}
-
-		// immediate value and sfiting involved
-		else if (in.imm == 1 && in.shift != 0) {
-		     instructions_helper(buf, bufsize, "%s%s r%d, r%d, #%d, %s #%d", opcodes[in.opcode], cond[in.cond], in.reg_dst, in.reg_op1, in.imm, sh[in.shift_op], in.shift);
+		else if (in.imm == 1) {
+		    unsigned int rot = in.shift >> 1;
+			//rot = rot << 1;
+			unsigned int immediate = (in.shift & 0b0001) << 7 | in.shift_op << 5 | in.one << 4 | in.reg_op2;
+			unsigned int val = immediate;
+			if (rot != 0) {
+			    val = rotate(immediate, rot);
+			}
+		        instructions_helper(buf, bufsize, "%s%s %s, %s, #%d", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], val);
 		}
 
 	}
@@ -507,10 +573,11 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 	    struct mem_insn mem_in = *(struct mem_insn *)addr;
 		if (mem_in.P == 1) {
 		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, w[mem_in.W]);
+		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src], w[mem_in.W]);
 		    }
 		    else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s, #%s%d]%s", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
+		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d, #%s%d]%s", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], reg[mem_in.reg_dst], 
+				reg[mem_in.reg_src], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
 		    }
 			else {
 			    unsigned int store_shift = mem_in.shift_imm;
@@ -519,20 +586,23 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
             	//struct shift in_shift = (struct shift) mem_in.shift_imm;
 		    if (mem_in.imm == 1 && in_shift.shift == 0) {
 				//struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s, r%s]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, in_shift.reg_op2, w[mem_in.W]);
+		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d, %d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2], w[mem_in.W]);
 		    }
 		    else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
 		        //struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s, %s #%s%d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
+		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d, %s #%s%d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], 
+				reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
 		    }  
 			}
 		}
 		else if (mem_in.P == 0) {
 		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s]", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src);
+		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d]", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src]);
 		    }
 		    else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s], #%s%d", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, u[mem_in.U], mem_in.shift_imm);
+		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d], #%s%d", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], 
+				reg[mem_in.reg_dst], reg[mem_in.reg_src], u[mem_in.U], mem_in.shift_imm);
 		    }
 			else {
 			    unsigned int store_shift = mem_in.shift_imm;
@@ -540,11 +610,13 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		        struct shift in_shift = *(struct shift *)shift;
 		    if (mem_in.imm == 1 && in_shift.shift == 0) {
 		       // struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s], r%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, in_shift.reg_op2);
+		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d], %d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2]);
 		    }
 		    else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
 		        //struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s r%s, [r%s], %s #%s%d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], mem_in.reg_dst, mem_in.reg_src, sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm);
+		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d], %s #%s%d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				reg[mem_in.reg_dst], reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm);
 		    }
 			}
 		}
