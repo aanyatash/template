@@ -423,6 +423,12 @@ struct branch_insn  {
     uint32_t cond:4; // conditional suffix
 };
 
+struct bx_insn {
+    uint32_t reg_dst:4; // instruction to execute
+    uint32_t middle:24; // data processing or load/store?
+    uint32_t cond:4; // conditional suffix
+};
+
 // bit masking for load/store memory instruction
 struct mem_insn  {
     uint32_t shift_imm: 12;  // shift immediate value
@@ -494,6 +500,13 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
     // first take care of data processing instructions
     // case for regular decoding instruction, when immediate is 0 and there is no register rotation/shifting
 	if (in.kind == 0) {
+	    if (in.imm == 0 && ((in.opcode & 0b1000) == 0b1000)) {
+		     struct bx_insn bx_in = *(struct bx_insn *)addr;
+			 if (bx_in.middle == 0b000100101111111111110001) {
+				instructions_helper(buf, bufsize, "bx %s", reg[bx_in.reg_dst]);
+				return;
+			 }
+		}
 		if (strcmp(opcodes[in.opcode], "mov") == 0 || strcmp(opcodes[in.opcode], "mvn") == 0 || strcmp(opcodes[in.opcode], "cmp") == 0 || strcmp(opcodes[in.opcode], "cmn") == 0 || 
 				strcmp(opcodes[in.opcode], "tst") == 0 || strcmp(opcodes[in.opcode], "teq") == 0)  {
 				unsigned int reg1 = in.reg_op1;
@@ -557,9 +570,11 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 			//rot = rot << 1;
 			unsigned int immediate = (in.shift & 0b0001) << 7 | in.shift_op << 5 | in.one << 4 | in.reg_op2;
 			unsigned int val = immediate;
+			printf("%d\n", val);
 			if (rot != 0) {
 			    val = rotate(immediate, rot);
 			}
+			printf("after %d\n", val);
 		        instructions_helper(buf, bufsize, "%s%s %s, %s, #%d", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], val);
 		}
 
