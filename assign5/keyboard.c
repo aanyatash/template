@@ -125,15 +125,18 @@ key_event_t keyboard_read_event(void)
 
 		// If CAPS LOCK is pressed
 		// Only if it is pressed as this is a 'sticky' key
-		else if (read.keycode == 0x58 && read.what == KEY_PRESS) {
+
+		// note if being pressed on and off
+		else if (read.keycode == 0x58) {
 		    // Check if caps lock is currently off by checking active modifiers
 			// Only turn on if it isn't on - add to active modifiers
-		    if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == 0) {
+		    if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == 0 && read.what == KEY_PRESS) {
 		 	    modifier = modifier | KEYBOARD_MOD_CAPS_LOCK;
 		    }
+
 			// Check if caps lock is on
 			// If it is on, turn it off - remove from active modifiers
-		    else if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == KEYBOARD_MOD_CAPS_LOCK) {
+		    else if ((modifier & KEYBOARD_MOD_CAPS_LOCK) == KEYBOARD_MOD_CAPS_LOCK && read.what == KEY_PRESS) {
 			    modifier = modifier & ~KEYBOARD_MOD_CAPS_LOCK;
 		    }
 		}

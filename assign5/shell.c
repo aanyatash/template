@@ -255,7 +255,7 @@ void shell_readline(char buf[], size_t bufsize)
  */
 int shell_evaluate(const char *line)
 {
-    char** tokens = (char**) malloc(40); // this is an array of strings called tokens for string parsing
+    char** tokens = (char**) malloc(40 * sizeof(char*)); // this is an array of strings called tokens for string parsing
 
 	int i = 0;
 	int j = 0;
@@ -318,6 +318,7 @@ int shell_evaluate(const char *line)
 	for (int i = 0; i < tokens_size; i++) {
 	    free(tokens[i]);
 	}
+	free(tokens);
     return -1;
 
 }

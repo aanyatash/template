@@ -270,14 +270,14 @@ void main(void)
     //test_keyboard_sequences();
     //timer_delay_ms(500);
 
-    //test_keyboard_events();
-    //timer_delay_ms(500);
+    test_keyboard_events();
+    timer_delay_ms(500);
 
-    //test_keyboard_chars();
+   // test_keyboard_chars();
 
     //test_keyboard_assert();
 
-    test_shell_evaluate();
+   // test_shell_evaluate();
 
     //test_shell_readline_fixed_input();
 
