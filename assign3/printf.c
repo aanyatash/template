@@ -255,7 +255,7 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 				unsigned_to_base(max + i, maxsize - i, val, 16, 0);   // problem: it converts it to a signed integer
 			}
 			else if (format[format_i + 1] == 'p') { // pointer address formatting code
-				unsigned int val = va_arg(args, unsigned int);
+				int val = va_arg(args, int);
 		        if (format[format_i + 2] == 'I') {
 				    format_i += 1;
 					decode_instruction(max + i, maxsize - i,(unsigned int *) val);

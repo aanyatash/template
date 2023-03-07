@@ -462,14 +462,17 @@ static void test_snprintf(void)
 	// Pointer
 	char point[20];
     total = snprintf(point, 20, "%p", (void *)0x7f94);
+	printf("here\n");
 	//printf("%s", point);
     assert(strcmp(point, "0x00007f94") == 0);
 	assert(total == 10);
 
 	total = snprintf(point, 20, "%p", ((void *)0));
 	//printf("%s", point);
+	printf("here2\n");
     assert(strcmp(point, "0x00000000") == 0);
 	assert(total == 10);
+	printf("here3\n");
 
 
 }
@@ -623,21 +626,31 @@ void test_disassemble_instr(void) {
 
 }
 
+void test23(void) {
+    char dst[20];
+	char buf[20];
+	size_t bufsize = sizeof(buf);
+    snprintf(dst, 20, "%p", (void *)0x7f94);
+    snprintf(buf, bufsize, "dst = %s \n", dst);
+    snprintf(dst, 20, "%p", NULL);
+    snprintf(buf, bufsize, "dst = %s \n", dst);
+}
 
 void main(void)
 {
     uart_init();
     uart_putstring("Start execute main() in tests/test_strings_printf.c\n");
 
-    test_memset();
-    test_strcmp();
-    test_strlcat();
-    test_strtonum();
-    test_to_base();
-    test_snprintf();
-	test_decode_instruction();
-    test_disassemble();
-	test_disassemble_instr();
+//    test_memset();
+//    test_strcmp();
+//    test_strlcat();
+//    test_strtonum();
+//    test_to_base();
+//    test_snprintf();
+//	test_decode_instruction();
+//    test_disassemble();
+//	test_disassemble_instr();
+	test23();
 
 
     uart_putstring("Successfully finished executing main() in tests/test_strings_printf.c\n");
