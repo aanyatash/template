@@ -10,7 +10,6 @@
 #include "uart.h"
 
 void decode_instruction(char* buf, size_t bufsize, unsigned int *addr);
-static void instructions_helper(char* buf, size_t bufsize, const char *format, ...); 
 static int rotate(int immediate, int rot); 
 
 // format to print in: instr dst, op1, op2
@@ -332,10 +331,7 @@ int printf(const char *format, ...)
 }
 
 
-/* From here to end of file is some sample code and suggested approach
- * for those of you doing the disassemble extension. Otherwise, ignore!
- *
- * The struct insn bitfield is declared using exact same layout as bits are organized in
+/* The struct insn bitfield is declared using exact same layout as bits are organized in
  * the encoded instruction. Accessing struct.field will extract just the bits
  * apportioned to that field. If you look at the assembly the compiler generates
  * to access a bitfield, you will see it simply masks/shifts for you. Neat!
@@ -350,91 +346,75 @@ static const char *opcodes[16] = {"and", "eor", "sub", "rsb", "add", "adc", "sbc
 static const char *reg[16] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10",
 						      "fp", "ip", "sp", "lr", "pc"};								
 
-static const char *sh[4] = {"lsl", "lsr", "asr", "ror"};
+static const char *sh[4] = {"lsl", "lsr", "asr", "ror"}; // shift operations
 
-static const char *branch[2] = {"b", "bl"};
+static const char *branch[2] = {"b", "bl"}; // branch or branch link?
 
-static const char *mem[2] = {"str", "ldr"};
+static const char *mem[2] = {"str", "ldr"}; // load or store?
 
-static const char *w[2] = {"", "!"};
+static const char *w[2] = {"", "!"}; // for write-back operation
 
-static const char *u[2] = {"-", ""};
+static const char *u[2] = {"-", ""}; // for adding or subtracting offset
 
-static const char *b[2] = {"", "b"};
+static const char *b[2] = {"", "b"}; // for byte transfer operation
 
 // bit masking for data processing instruction
 struct insn  {
     uint32_t reg_op2:4; // Rm is R3 for additional register
     uint32_t one:1; // default 0
-    uint32_t shift_op: 2;  // operation shift - two bits could be LSL or LSR
+    uint32_t shift_op: 2;  // operation shift - two bits could be LSL, LSR, ASR, ROR
     uint32_t shift: 5;  // shift immediate value - 5 bit shift operation
     uint32_t reg_dst:4; // destination register
     uint32_t reg_op1:4; // source register
     uint32_t s:1;      // is the flag set? i.e. is condition met? 
     uint32_t opcode:4; // instruction to execute
     uint32_t imm:1;  // Is there an immediate value?
-    uint32_t kind:2; // data processing or load/store?
+    uint32_t kind:2; // data processing or branch or load/store?
     uint32_t cond:4; // conditional suffix
 };
 
 // bit masking for branch instruction
 struct branch_insn  {
-    int32_t offset:24; // instruction to execute
-	uint32_t link:1;
-	uint32_t one:1;
+    int32_t offset:24; // offset for finding address of return instruction
+	uint32_t link:1; // is it link or not? 1 for link
+	uint32_t one:1; // part of kind for branch - should be one
     uint32_t kind:2; // data processing or load/store?
     uint32_t cond:4; // conditional suffix
 };
 
+// bit masking for bx instruction
 struct bx_insn {
-    uint32_t reg_dst:4; // instruction to execute
-    uint32_t middle:24; // data processing or load/store?
-    uint32_t cond:4; // conditional suffix
+    uint32_t reg_dst:4; // register to find return address
+    uint32_t middle:24; // bits to identify bx instruction
+	uint32_t cond:4; // conditional suffix
 };
 
 // bit masking for load/store memory instruction
 struct mem_insn  {
     uint32_t shift_imm: 12;  // shift immediate value
-	uint32_t reg_src:4; // destination register
-    uint32_t reg_dst:4; // source register
+	uint32_t reg_src:4; // source register
+    uint32_t reg_dst:4; // destination register
     uint32_t L:1; // if 1 ldr, else str
-    uint32_t W:1; // instruction to execute
-    uint32_t B:1; // instruction to execute
-    uint32_t U:1; // instruction to execute
-    uint32_t P:1; // instruction to execute
+    uint32_t W:1; // write back bit (if 1 write address into base)
+    uint32_t B:1; // byte/word bit (if 1 transfer byte quantity, else word quantity)
+    uint32_t U:1; // up/down bit (if 1, add offset to base. else, subtract.)
+    uint32_t P:1; // pre/post indexing bit
     uint32_t imm:1;  // Is there an immediate value?
-    uint32_t kind:2; // data processing or load/store?
+    uint32_t kind:2; // data processing, branch, or load/store?
     uint32_t cond:4; // conditional suffix
 };
 
 struct shift {
-    uint32_t reg_op2:4; // Rm is R3 for additional register
+    uint32_t reg_op2:4; // Rm is offset register
     uint32_t one:1; // default 0
-    uint32_t shift_op: 2;  // operation shift - two bits could be LSL or LSR
+    uint32_t shift_op: 2;  // operation shift - two bits could be LSL, LSR, ASR, ROR
     uint32_t shift: 5;  // shift immediate value - 5 bit shift operation
 };
 
-
-// format to print in: instr dst, op1, op2
-
-//static void sample_use(unsigned int *addr) { // address of instruction
-//    struct insn in = *(struct insn *)addr;  // derefernce address to get code
-//    printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
-//}
-
-// format to print in: instr dst, op1, op2
-
-void instructions_helper(char* buf, size_t bufsize, const char *format, ...) {
-    // create the list of args i need
-	//call vsnprintf to edit buf
-    va_list args;
-	va_start(args, format); // indicates that list of args starts after format param
-	vsnprintf(buf, bufsize, format, args);
-	va_end(args);
-
-}
-
-
+/* This function performs a 32-bit right rotation, given a immediate
+ * value to a rotate and rotate value which must be multiplied by 2
+ * as per the rules for decoding a shift value.
+ */
 int rotate(int immediate, int rot) {
     rot = (rot*2) % 32;
     int shift = immediate >> rot;
@@ -443,9 +423,9 @@ int rotate(int immediate, int rot) {
 }
 
 
-// when put in vsnprintf
-// this function should return a format string and also the arguments list
-// if this doesn't work you could do a bunch of strlcat statements
+/* This function takes the address of an instruction, dereferences it, and then
+ * decodes it and stores it in buf.
+ */
 void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) { 
     // addr is address of instruction
 	if (bufsize != 0) {
@@ -456,147 +436,164 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 	}
     struct insn in = *(struct insn *)addr;  // derefernce address to get code
 
+    // Branch instruction - not exhange
 	if (in.kind == 0b10 && in.imm == 1) {
-	    struct branch_insn branch_in = *(struct branch_insn *)addr;
-		instructions_helper(buf, bufsize, "%s%s 0x%x", branch[branch_in.link], cond[branch_in.cond], (branch_in.offset << 2) + ((unsigned int) addr + 8));
+	    struct branch_insn branch_in = *(struct branch_insn *)addr; // use branch struct for bit masking
+		// Calculate offset using address of instruction as pc address anchor
+		// imm24 << 2 + pc + 8
+		snprintf(buf, bufsize, "%s%s 0x%x", branch[branch_in.link], cond[branch_in.cond], (branch_in.offset << 2) + ((unsigned int) addr + 8));
 	}
 
-    // first take care of data processing instructions
-    // case for regular decoding instruction, when immediate is 0 and there is no register rotation/shifting
+    // Data processing instructions
 	if (in.kind == 0) {
+	    // this check for a bx lr instruction first
 	    if (in.imm == 0 && ((in.opcode & 0b1000) == 0b1000)) {
-		     struct bx_insn bx_in = *(struct bx_insn *)addr;
-			 if (bx_in.middle == 0b000100101111111111110001) {
-				instructions_helper(buf, bufsize, "bx %s", reg[bx_in.reg_dst]);
+		     struct bx_insn bx_in = *(struct bx_insn *)addr; // bx struct for bit masking
+			 if (bx_in.middle == 0b000100101111111111110001) { // bit pattern for bx instruction
+				snprintf(buf, bufsize, "bx %s", reg[bx_in.reg_dst]);
 				return;
 			 }
 		}
-		if (strcmp(opcodes[in.opcode], "mov") == 0 || strcmp(opcodes[in.opcode], "mvn") == 0 || strcmp(opcodes[in.opcode], "cmp") == 0 || strcmp(opcodes[in.opcode], "cmn") == 0 || 
-				strcmp(opcodes[in.opcode], "tst") == 0 || strcmp(opcodes[in.opcode], "teq") == 0)  {
+		// These instructions only need two register values after the instruction name
+		if (strcmp(opcodes[in.opcode], "mov") == 0 || strcmp(opcodes[in.opcode], "mvn") == 0 
+				|| strcmp(opcodes[in.opcode], "cmp") == 0 || strcmp(opcodes[in.opcode], "cmn") == 0 
+				|| strcmp(opcodes[in.opcode], "tst") == 0 || strcmp(opcodes[in.opcode], "teq") == 0)  {
 				unsigned int reg1 = in.reg_op1;
-				if (strcmp(opcodes[in.opcode], "mov") == 0) {
-				    reg1 = in.reg_dst;
+				if (strcmp(opcodes[in.opcode], "mov") == 0 || strcmp(opcodes[in.opcode], "mvn") == 0 ) {
+				    reg1 = in.reg_dst; // mov and mvn use the register destination as parameters (exception from others)
 				}    
 				// no immediate value and no shifting on register value
 				// two registers
 				if (in.imm == 0 && in.shift == 0 && in.one == 0) {
-				    instructions_helper(buf, bufsize, "%s%s %s, %s", opcodes[in.opcode], cond[in.cond], reg[reg1], reg[in.reg_op2]);
+				    snprintf(buf, bufsize, "%s%s %s, %s", opcodes[in.opcode], cond[in.cond], reg[reg1], reg[in.reg_op2]);
 				}
 
-				// no immediate value, shifting operation required on number
+				// no immediate value, shifting operation required on a number
 				// two registers plus a shifted immediate value
 				else if (in.imm == 0 && in.shift != 0 && in.one == 0) {
-				    instructions_helper(buf, bufsize, "%s%s %s, %s, %s #%d", opcodes[in.opcode], cond[in.cond], reg[reg1], reg[in.reg_op2], sh[in.shift_op], in.shift);
+				    snprintf(buf, bufsize, "%s%s %s, %s, %s #%d", opcodes[in.opcode], cond[in.cond], reg[reg1], 
+					reg[in.reg_op2], sh[in.shift_op], in.shift);
 				}
 
 				// no immediate value but there is shifting on a register value
 				// two registers plus a shifted register
 				else if (in.imm == 0 && in.one == 1) {
-				    instructions_helper(buf, bufsize, "%s%s %s, %s, %s %s", opcodes[in.opcode], cond[in.cond], reg[reg1], reg[in.reg_op2], sh[in.shift_op], reg[in.shift >> 1]);
+				    snprintf(buf, bufsize, "%s%s %s, %s, %s %s", opcodes[in.opcode], cond[in.cond], reg[reg1], 
+					reg[in.reg_op2], sh[in.shift_op], reg[in.shift >> 1]);
 				}
 
-				// There is an immediate value but no shifting
+				// There is an immediate value, need to perform RRX to get correct immediate value
 				else if (in.imm == 1) {
-				    unsigned int rot = in.shift >> 1;
+				    // the bit mask we use doesn't completely apply to this instr
+					// do some bit shifting to correct this
+				    unsigned int rot = in.shift >> 1; // rot is 4 bits
+					// immediate is remaining 8 bits
 				    unsigned int immediate = (in.shift & 0b0001) << 7 | in.shift_op << 5 | in.one << 4 | in.reg_op2;
 				    unsigned int val = immediate;
 				    if (rot != 0) {
-						val = rotate(immediate, rot);
+						val = rotate(immediate, rot); // perform rotation operation
 				    }
-						instructions_helper(buf, bufsize, "%s%s %s, #%d", opcodes[in.opcode], cond[in.cond], reg[reg1], val);
+						snprintf(buf, bufsize, "%s%s %s, #%d", opcodes[in.opcode], cond[in.cond], reg[reg1], val);
 				}
 		}
     
 	    // no immediate value and no shifting on register value
 		// three registers
 		else if (in.imm == 0 && in.shift == 0 && in.one == 0) {
-		    instructions_helper(buf, bufsize, "%s%s %s, %s, %s", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], reg[in.reg_op2]);
+		    snprintf(buf, bufsize, "%s%s %s, %s, %s", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], 
+			reg[in.reg_op1], reg[in.reg_op2]);
 		}
 
 		// no immediate value, shifting operation required on number
-		// two registers plus a shifted immediate value
-		// THIRD REG?
+		// three registers plus a shifted immediate value
 		else if (in.imm == 0 && in.shift != 0 && in.one == 0) {
-		    instructions_helper(buf, bufsize, "%s%s %s, %s, %s, %s #%d", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], reg[in.reg_op2], sh[in.shift_op], in.shift);
+		    snprintf(buf, bufsize, "%s%s %s, %s, %s, %s #%d", opcodes[in.opcode], cond[in.cond], 
+			reg[in.reg_dst], reg[in.reg_op1], reg[in.reg_op2], sh[in.shift_op], in.shift);
 		}
 
 		// no immediate value but there is shifting on a register value
-		// two registers plus a shifted register
-		// THIRD REG?
+		// three registers plus a shifted register
 		else if (in.imm == 0 && in.one == 1) {
-		    instructions_helper(buf, bufsize, "%s%s %s, %s, %s, %s %s", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], reg[in.reg_op2], sh[in.shift_op], reg[in.shift >> 1]);
+		    snprintf(buf, bufsize, "%s%s %s, %s, %s, %s %s", opcodes[in.opcode], cond[in.cond], 
+			reg[in.reg_dst], reg[in.reg_op1], reg[in.reg_op2], sh[in.shift_op], reg[in.shift >> 1]);
 		}
 
-        // There is an immediate value but no shifting
+        // There is an immediate value, need to perform RRX to get correct immediate value
 		else if (in.imm == 1) {
-		    unsigned int rot = in.shift >> 1;
-			//rot = rot << 1;
+		    // the bit mask we use doesn't completely apply to this instruction
+			// do some but shifting to correct this
+		    unsigned int rot = in.shift >> 1; // rot is 4 bits
+			// immediate is remaining 8 bits
 			int immediate = (in.shift & 0b0001) << 7 | in.shift_op << 5 | in.one << 4 | in.reg_op2;
 			int val = immediate;
 			if (rot != 0) {
 			    val = rotate(immediate, rot);
 			}
-		    instructions_helper(buf, bufsize, "%s%s %s, %s, #%d", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], val);
+		    snprintf(buf, bufsize, "%s%s %s, %s, #%d", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], 
+			reg[in.reg_op1], val);
 		}
 
 	}
-	// load instructions
+	// ldr, str, ldrb, and strb instructions
 	else if (in.kind == 0b01) {
-	    struct mem_insn mem_in = *(struct mem_insn *)addr;
-		if (mem_in.P == 1) {
+	    struct mem_insn mem_in = *(struct mem_insn *)addr; // use memory instructions struct to bit mask
+		if (mem_in.P == 1) { // pre-indexing instr - so add offset before transfer
+		    // No immediate value and no shifting involved
 		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s]%s", mem[mem_in.L], cond[mem_in.cond], 
+		        snprintf(buf, bufsize, "%s%s%s %s, [%s]%s", mem[mem_in.L], cond[mem_in.cond], 
 				b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src], w[mem_in.W]);
 		    }
-		    else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s, #%s%d]%s", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], reg[mem_in.reg_dst], 
-				reg[mem_in.reg_src], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
+			// no register shifting, but there is an immediate offset to add
+			else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
+		        snprintf(buf, bufsize, "%s%s%s %s, [%s, #%s%d]%s", mem[mem_in.L], cond[mem_in.cond],  
+				b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
 		    }
-			else {
+			else { // there is an immediate value in this case, so a register shift to add
+			    // must use different mapping struct for an immeidate value shift
+				// this is because the bit masking is different for the last two bits
 			    unsigned int store_shift = mem_in.shift_imm;
 			    unsigned int *shift = &store_shift;
 		        struct shift in_shift = *(struct shift *)shift;
-            	//struct shift in_shift = (struct shift) mem_in.shift_imm;
-		    if (mem_in.imm == 1 && in_shift.shift == 0) {
-				//struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s, %s]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
-				reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2], w[mem_in.W]);
-		    }
-		    else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
-		        //struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s, %s #%s%d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], 
-				reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], in_shift.shift, w[mem_in.W]);
+				// no shift to be applied, just an additional register
+		        if (mem_in.imm == 1 && in_shift.shift == 0) {
+		            snprintf(buf, bufsize, "%s%s%s %s, [%s, %s]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				    reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2], w[mem_in.W]);
+		        }
+				// shift operation to be applied to additional register param
+		        else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
+		            snprintf(buf, bufsize, "%s%s%s %s, [%s, %s #%s%d]%s", mem[mem_in.L], cond[mem_in.cond], 
+				    b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], 
+				    in_shift.shift, w[mem_in.W]);
 		    }  
 			}
 		}
-		else if (mem_in.P == 0) {
+		else if (mem_in.P == 0) { // post-indexing instruction - so add offset after transfer
+		    // No immediate value and no shifting involved
 		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s]", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src]);
+		        snprintf(buf, bufsize, "%s%s%s %s, [%s]", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				reg[mem_in.reg_dst], reg[mem_in.reg_src]);
 		    }
 		    else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s], #%s%d", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], 
+		        snprintf(buf, bufsize, "%s%s%s %s, [%s], #%s%d", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], 
 				reg[mem_in.reg_dst], reg[mem_in.reg_src], u[mem_in.U], mem_in.shift_imm);
 		    }
-			else {
+			else { // there is an immediate value in this case, so a register shift to add
+			    // must use different mapping struct for an immeidate value shift
+				// this is because the bit masking is different for the last two bits
 			    unsigned int store_shift = mem_in.shift_imm;
 			    unsigned int *shift = &store_shift;
 		        struct shift in_shift = *(struct shift *)shift;
-		    if (mem_in.imm == 1 && in_shift.shift == 0) {
-		       // struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s], %s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
-				reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2]);
-		    }
-		    else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
-		        //struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s], %s #%s%d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
-				reg[mem_in.reg_dst], reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm);
-		    }
+				// no shift to be applied, just an additional register
+		        if (mem_in.imm == 1 && in_shift.shift == 0) {
+		            snprintf(buf, bufsize, "%s%s%s %s, [%s], %s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				    reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2]);
+		        }
+		        // shift operation to be applied to additional register param
+		        else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
+		            snprintf(buf, bufsize, "%s%s%s %s, [%s], %s #%s%d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				    reg[mem_in.reg_dst], reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm);
+		        }
 			}
 		}
 	}
- 
-//  printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
-//	printf("shift %d shift_op %d\n", in.shift, in.shift_op);
-//	printf("%s\n", buf);
-
 }
