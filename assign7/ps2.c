@@ -2,7 +2,7 @@
  * Filename: "ps2.c"
  * This file contains code that initializes the keyboard and then reads the data and clock
  * to identify the key presses. The file also uses the parity, stop, and start bit obtained 
- * from data as an error-correcting code.
+ * from data as an error-correcting code. This code uses interrupts to read from the clock line.
  */
 
 #include "gpio.h"
@@ -14,7 +14,7 @@
 #include "gpio_interrupts.h"
 #include "ringbuffer.h"
 
-static void handle_ps2(unsigned int pc, void *dev);
+static void handle_ps2(unsigned int pc, void *aux_data);
 
 // A ps2_device is a structure that stores all of the state and information
 // needed for a PS2 device. The clock field stores the pin number for the
@@ -28,6 +28,7 @@ static void handle_ps2(unsigned int pc, void *dev);
 // and a mouse).
 //
 // This definition fills out the structure declared in ps2.h.
+
 struct ps2_device {
     unsigned int clock;
     unsigned int data;
@@ -69,77 +70,68 @@ ps2_device_t *ps2_new(unsigned int clock_gpio, unsigned int data_gpio)
 /* This function takes in the clock as an unsigned integer argument and
  * waits for the clock edge to fall as this indicates that data is being sent.
  */
-//void wait_for_falling_clock_edge(unsigned int clk)
-//{
-//    while(gpio_read(clk) == 0) {}
-//    while(gpio_read(clk) == 1) {}
-//}
-
-static void handle_ps2(unsigned int pc, void *dev){
+static void handle_ps2(unsigned int pc, void *aux_data){
     // check for clock falling edge
-    if (gpio_check_and_clear_event(((ps2_device_t *) dev)->clock)) {
-		((ps2_device_t *) dev)->calls += 1;
+	ps2_device_t* dev = (ps2_device_t *) aux_data;
+    if (gpio_check_and_clear_event(dev->clock)) {
+		dev->calls += 1;
     }
 	// if no falling edge, read again
-	// do we have to reset?
 	else {
 		return;
 	}
-    if (((ps2_device_t *)dev)->calls == -1) {
+    if (dev->calls == -1) {
 		// This ensures that the start bit is correctly
     	// a 0.
-		if (gpio_read(((ps2_device_t *) dev)->data) != 0) {
-		     ((ps2_device_t *) dev)->calls = -2;
+		if (gpio_read(dev->data) != 0) {
+		     dev->calls = -2;
 		}
     }
     // Reads the next 10 bits after start bit
 	// dev->calls should be 0 and above here
-    else {
+    else if (dev->calls >= 0) {
 		// Next 8 bits received are the bits for data we want to use
-		if (((ps2_device_t *) dev)->calls < 8) {
-		    ((ps2_device_t *) dev)->bit = (gpio_read(((ps2_device_t *) dev)->data) ? 1 : 0);
-		    ((ps2_device_t *) dev)->parity += ((ps2_device_t *) dev)->bit;
+		if (dev->calls < 8) {
+		    dev->bit = (gpio_read(dev->data) ? 1 : 0);
+		    dev->parity += dev->bit;
 			// LSB first received
-		    ((ps2_device_t *) dev)->number += ((ps2_device_t *) dev)->bit << ((ps2_device_t *) dev)->calls; 
+		    dev->number += dev->bit << dev->calls; 
 		}
 		// The 10th bit received is the parity bit
-		else if (((ps2_device_t *) dev)->calls == 8) {
-		    ((ps2_device_t *) dev)->parity += (gpio_read(((ps2_device_t *) dev)->data) ? 1 : 0);
+		else if (dev->calls == 8) {
+		    dev->parity += (gpio_read(dev->data) ? 1 : 0);
 		    // Total number of ones must be odd, if it isn't
 		    // discard the bits and start reading again
-		    if (((ps2_device_t *) dev)->parity % 2 == 0) {
-				((ps2_device_t *) dev)->calls = -2;
-				((ps2_device_t *) dev)->number = 0;
-				((ps2_device_t *) dev)->parity = 0;
-				((ps2_device_t *) dev)->bit = 0;
+		    if (dev->parity % 2 == 0) {
+				dev->calls = -2;
+				dev->number = 0;
+				dev->parity = 0;
+				dev->bit = 0;
 		    }
 		}
 		// The 11th bit recieved must be the stop bit and must be 1
 		// If it is not, loop starts over and data should be read again
-		else if (((ps2_device_t *) dev)->calls == 9) {
-		    if (gpio_read(((ps2_device_t *) dev)->data) == 1) {
-				rb_enqueue(((ps2_device_t *) dev)->rb, ((ps2_device_t *) dev)->number);
+		else if (dev->calls == 9) {
+		    if (gpio_read(dev->data) == 1) {
+				rb_enqueue(dev->rb, dev->number);
 		    }
- 		    ((ps2_device_t *) dev)->calls = -2;
-		    ((ps2_device_t *) dev)->number = 0;
-		    ((ps2_device_t *) dev)->parity = 0;
-		    ((ps2_device_t *) dev)->bit = 0;
+ 		    dev->calls = -2;
+		    dev->number = 0;
+		    dev->parity = 0;
+		    dev->bit = 0;
 		}
     }
-
-//    if (gpio_check_and_clear_event(((ps2_device_t *) dev)->clock)) {
-//		((ps2_device_t *) dev)->calls += 1;
-//    }
+	aux_data = dev;
 }
+
 // This function reads a single ps2 scan code. It always returns a correctly received scan code:
 // if an error occurs (e.g., start bit not detected, parity is wrong), the
 // function should read another scan code.
 unsigned char ps2_read(ps2_device_t *dev)
 {
-    while (rb_empty(dev->rb)) {/* spin */ }
-	int* temp = malloc(4);
-	rb_dequeue(dev->rb, temp);
-	free(temp);
-    return *temp;
+    while (rb_empty(dev->rb)) {/* spin */}
+    unsigned int temp;
+	rb_dequeue(dev->rb, (int *) &temp);
+    return temp;
 }
 

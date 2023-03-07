@@ -41,6 +41,21 @@ void check_interrupts_received(void)
     printf("Time's up!\n");
 }
 
+/* I did most of my testing using test read delay where I tested individual letter and number keys and then I tested changes
+ * with modifier keys caps lock, shift, ctrl, alt individually and in conjunction with each other. I also did a
+ * stress test where I pressed every single key on the keyboard to see if my interrupts could keep track and
+ * it printed out every single one. I tested special function keys like backspace, tab, and enter as well as the
+ * F function keys to ensure that these would also register as an event. I tested letter, number, and punctuation keys
+ * for modifiers like caps lock and shift.
+ */
+
+/* I also tested interrupts using my console. Here, I would type long commands such as help multiple times to see
+ * whether it could keep track with excuting multiple complex instructions such as scrolling and vertical wrap, in 
+ * addition to tracking keys. I would also do the same with alternating between help, echo, peek, and poke  instructions.
+ * My console is still slow in terms of drawing and refreshing the screen, but it does register the interrupts for keyboard.
+ * I also tested the typing multiple keys by sliding my hands across the keyboard in order to perform a stress test on the
+ * console using interrupts. Shift, caps lock, ctrl, and alt were also tested here.
+ */
 
 void main(void)
 {
