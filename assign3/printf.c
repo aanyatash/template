@@ -350,7 +350,7 @@ static const char *opcodes[16] = {"and", "eor", "sub", "rsb", "add", "adc", "sbc
 static const char *reg[16] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10",
 						      "fp", "ip", "sp", "lr", "pc"};								
 
-static const char *sh[4] = {"LSL", "LSR", "ASR", "ROR"};
+static const char *sh[4] = {"lsl", "lsr", "asr", "ror"};
 
 static const char *branch[2] = {"b", "bl"};
 
@@ -545,10 +545,11 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 	    struct mem_insn mem_in = *(struct mem_insn *)addr;
 		if (mem_in.P == 1) {
 		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src], w[mem_in.W]);
+		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s]%s", mem[mem_in.L], cond[mem_in.cond], 
+				b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src], w[mem_in.W]);
 		    }
 		    else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d, #%s%d]%s", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], reg[mem_in.reg_dst], 
+		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s, #%s%d]%s", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], reg[mem_in.reg_dst], 
 				reg[mem_in.reg_src], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
 		    }
 			else {
@@ -558,22 +559,22 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
             	//struct shift in_shift = (struct shift) mem_in.shift_imm;
 		    if (mem_in.imm == 1 && in_shift.shift == 0) {
 				//struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d, %d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s, %s]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
 				reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2], w[mem_in.W]);
 		    }
 		    else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
 		        //struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d, %s #%s%d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], 
-				reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
+		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s, %s #%s%d]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], 
+				reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], in_shift.shift, w[mem_in.W]);
 		    }  
 			}
 		}
 		else if (mem_in.P == 0) {
 		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d]", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src]);
+		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s]", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src]);
 		    }
 		    else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
-		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d], #%s%d", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], 
+		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s], #%s%d", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], 
 				reg[mem_in.reg_dst], reg[mem_in.reg_src], u[mem_in.U], mem_in.shift_imm);
 		    }
 			else {
@@ -582,12 +583,12 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		        struct shift in_shift = *(struct shift *)shift;
 		    if (mem_in.imm == 1 && in_shift.shift == 0) {
 		       // struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d], %d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s], %s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
 				reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2]);
 		    }
 		    else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
 		        //struct shift in_shift = mem_in.shift_imm;
-		        instructions_helper(buf, bufsize, "%s%s%s %d, [%d], %s #%s%d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+		        instructions_helper(buf, bufsize, "%s%s%s %s, [%s], %s #%s%d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
 				reg[mem_in.reg_dst], reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm);
 		    }
 			}

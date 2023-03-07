@@ -14,3 +14,7 @@ loop:
    mov r0, r9, lsl #7
    mov r4, r8, lsr r6
    bne loop
+
+
+ldr r0, [r1]
+str r14, [r2]

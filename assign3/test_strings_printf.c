@@ -535,6 +535,9 @@ void test_disassemble_instr(void) {
    unsigned int instr13 = 0xe1a04638; //lsr	r4, r8, r6
    unsigned int instr14 = 0x1afffff6; //bne	14 <loop>
 
+   unsigned int instr15 = 0xe5910000; 	//ldr	r0, [r1]
+   unsigned int instr16 = 0xe582e000;    //str lr, [r2]
+
 //   unsigned int instructions[14] = {instr1, instr2, instr3, instr4, instr5, instr6, instr7, instr8,
 //										instr9, instr10, instr11, instr12, instr13, instr14};
 //
@@ -556,6 +559,9 @@ void test_disassemble_instr(void) {
     printf("Encoded instruction %x disassembles to %pI\n", instr12,  (unsigned int*)&instr12);
     printf("Encoded instruction %x disassembles to %pI\n", instr13, (unsigned int*) &instr13);
     printf("Encoded instruction %x disassembles to %pI\n", instr14,  (unsigned int*)&instr14);
+    printf("Encoded instruction %x disassembles to %pI\n", instr15, (unsigned int*) &instr15);
+    printf("Encoded instruction %x disassembles to %pI\n", instr16,  (unsigned int*)&instr16);
+
 
 }
 
