@@ -479,9 +479,6 @@ void test_decode_instruction(void) {
 	size_t bufsize = sizeof(buf);
 
     unsigned int add = 0xe0843005;
-    unsigned int sub = 0xe24bd00c;
-    unsigned int mov = 0xe3a0006b;
-    unsigned int bne = 0x1afffffa;
 
     decode_instruction(buf, bufsize, &add);
 }
@@ -511,6 +508,7 @@ void test_disassemble(void)
     printf("Encoded instruction %x disassembles to %pI\n", sub,  (unsigned int*)&sub);
     printf("Encoded instruction %x disassembles to %pI\n", mov, (unsigned int*)&mov);
     printf("Encoded instruction %x disassembles to %pI\n", bne,  (unsigned int*)&bne);
+
 	printf("\n");
 
 	for (int i = 0; i < 30; i++) { // compared to x/30i 0x8000 in gdb and all correct!
