@@ -36,7 +36,7 @@ struct ps2_device {
 	unsigned int number;
 	unsigned int parity;
 	unsigned int bit;
-	rb_t *rb;
+	rb_t *rb; // stores scancodes
 };
 
 // Creates a new PS2 device with a particular clock and data pin,
@@ -48,16 +48,16 @@ ps2_device_t *ps2_new(unsigned int clock_gpio, unsigned int data_gpio)
 	gpio_interrupts_init();
 
     dev->clock = clock_gpio;
-	dev->rb = rb_new();
-	dev->calls = -2;
-	dev->number = 0;
-	dev->parity = 0;
+	dev->rb = rb_new(); // initialize ringbuffer queue
+	dev->calls = -2; // start at -2, so actual bits for scancode read when calls is 0.
+	dev->number = 0; // tracks scancode
+	dev->parity = 0; // tracks parity
 	dev->bit = 0;
-    gpio_set_input(dev->clock);
+    gpio_set_input(dev->clock); // configure clock line
     gpio_set_pullup(dev->clock);
 
     dev->data = data_gpio;
-    gpio_set_input(dev->data);
+    gpio_set_input(dev->data); // configure data line
     gpio_set_pullup(dev->data);
 
 	gpio_enable_event_detection(dev->clock, GPIO_DETECT_FALLING_EDGE);
@@ -67,12 +67,15 @@ ps2_device_t *ps2_new(unsigned int clock_gpio, unsigned int data_gpio)
     return dev;
 }
 
-/* This function takes in the clock as an unsigned integer argument and
- * waits for the clock edge to fall as this indicates that data is being sent.
+/* This function in an interrupts handler function that collects bits for 
+ * a scancode by reading from the data line only if a falling edge is detected
+ * from the clock line. The function checks for error correcting codes by
+ * verifying the start, stop, and parity bits are correct. A ps2_device_t 
+ * struct pointer is passed in as auxilary data.
  */
 static void handle_ps2(unsigned int pc, void *aux_data){
-    // check for clock falling edge
 	ps2_device_t* dev = (ps2_device_t *) aux_data;
+    // check for clock falling edge
     if (gpio_check_and_clear_event(dev->clock)) {
 		dev->calls += 1;
     }
@@ -124,9 +127,8 @@ static void handle_ps2(unsigned int pc, void *aux_data){
 	aux_data = dev;
 }
 
-// This function reads a single ps2 scan code. It always returns a correctly received scan code:
-// if an error occurs (e.g., start bit not detected, parity is wrong), the
-// function should read another scan code.
+// This function reads a single ps2 scan code. It always returns a correctly received scan code, if there
+// is one queued up.
 unsigned char ps2_read(ps2_device_t *dev)
 {
     while (rb_empty(dev->rb)) {/* spin */}
