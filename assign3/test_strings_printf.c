@@ -517,6 +517,48 @@ void test_disassemble(void)
     }
 }
 
+void test_disassemble_instr(void) {
+   unsigned int instr1 = 0xe7a21004; 	//str	r1, [r2, r4]!
+   unsigned int instr2 = 0xe6821004; 	//str	r1, [r2], r4
+   unsigned int instr3 = 0xe5921010; 	//ldr	r1, [r2, #16]
+   unsigned int instr4 = 0xe7921103; 	//ldr	r1, [r2, r3, lsl #2]
+   unsigned int instr5 = 0x05d61005; 	//ldrbeq	r1, [r6, #5]
+
+//00000014 <loop>:
+   unsigned int instr6 = 0xe0821003; 	//add	r1, r2, r3
+   unsigned int instr7 = 0xe0432004; 	//sub	r2, r3, r4
+   unsigned int instr8 = 0x00821003; 	//addeq	r1, r2, r3
+   unsigned int instr9 = 0x10821003; 	//addne	r1, r2, r3
+   unsigned int instr10 = 0xe2821028; //add	r1, r2, #40, 0	; 0x28
+   unsigned int instr11 = 0xe2432eff; //sub	r2, r3, #4080	; 0xff0
+   unsigned int instr12 = 0xe1a00389; //lsl	r0, r9, #7
+   unsigned int instr13 = 0xe1a04638; //lsr	r4, r8, r6
+   unsigned int instr14 = 0x1afffff6; //bne	14 <loop>
+
+//   unsigned int instructions[14] = {instr1, instr2, instr3, instr4, instr5, instr6, instr7, instr8,
+//										instr9, instr10, instr11, instr12, instr13, instr14};
+//
+//    for (int i = 0; i < 14; i++) {
+//        printf("%p:  %x  %pI\n", &(intructions[i]), instructions[i], (unsigned int *) (&(instuctions[i])));
+//	}
+
+    printf("Encoded instruction %x disassembles to %pI\n", instr1, (unsigned int*) &instr1);
+    printf("Encoded instruction %x disassembles to %pI\n", instr2,  (unsigned int*)&instr2);
+    printf("Encoded instruction %x disassembles to %pI\n", instr3, (unsigned int*) &instr3);
+    printf("Encoded instruction %x disassembles to %pI\n", instr4,  (unsigned int*)&instr4);
+    printf("Encoded instruction %x disassembles to %pI\n", instr5, (unsigned int*) &instr5);
+    printf("Encoded instruction %x disassembles to %pI\n", instr6,  (unsigned int*)&instr6);
+    printf("Encoded instruction %x disassembles to %pI\n", instr7, (unsigned int*) &instr7);
+    printf("Encoded instruction %x disassembles to %pI\n", instr8,  (unsigned int*)&instr8);
+    printf("Encoded instruction %x disassembles to %pI\n", instr9, (unsigned int*) &instr9);
+    printf("Encoded instruction %x disassembles to %pI\n", instr10,  (unsigned int*)&instr10);
+    printf("Encoded instruction %x disassembles to %pI\n", instr11, (unsigned int*) &instr11);
+    printf("Encoded instruction %x disassembles to %pI\n", instr12,  (unsigned int*)&instr12);
+    printf("Encoded instruction %x disassembles to %pI\n", instr13, (unsigned int*) &instr13);
+    printf("Encoded instruction %x disassembles to %pI\n", instr14,  (unsigned int*)&instr14);
+
+}
+
 
 void main(void)
 {
@@ -531,6 +573,7 @@ void main(void)
     test_snprintf();
 	test_decode_instruction();
     test_disassemble();
+	test_disassemble_instr();
 
 
     uart_putstring("Successfully finished executing main() in tests/test_strings_printf.c\n");

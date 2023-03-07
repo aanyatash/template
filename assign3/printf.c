@@ -339,47 +339,11 @@ int printf(const char *format, ...)
  * the encoded instruction. Accessing struct.field will extract just the bits
  * apportioned to that field. If you look at the assembly the compiler generates
  * to access a bitfield, you will see it simply masks/shifts for you. Neat!
-
-
-static const char *cond[16] = {"eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc",
-                               "hi", "ls", "ge", "lt", "gt", "le", "", ""};
-static const char *opcodes[16] = {"and", "eor", "sub", "rsb", "add", "adc", "sbc", "rsc",
-                                  "tst", "teq", "cmp", "cmn", "orr", "mov", "bic", "mvn"};
-
-struct insn  {
-    uint32_t reg_op2:4;
-    uint32_t one:1;
-    uint32_t shift_op: 2;
-    uint32_t shift: 5;
-    uint32_t reg_dst:4;
-    uint32_t reg_op1:4;
-    uint32_t s:1;
-    uint32_t opcode:4;
-    uint32_t imm:1;
-    uint32_t kind:2;
-    uint32_t cond:4;
-};
-
-static void sample_use(unsigned int *addr) {
-    struct insn in = *(struct insn *)addr;
-    printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
-}
-
-*/
-
-
-
-/* From here to end of file is some sample code and suggested approach
- * for those of you doing the disassemble extension. Otherwise, ignore!
- *
- * The struct insn bitfield is declared using exact same layout as bits are organized in
- * the encoded instruction. Accessing struct.field will extract just the bits
- * apportioned to that field. If you look at the assembly the compiler generates
- * to access a bitfield, you will see it simply masks/shifts for you. Neat!
 */
 
 static const char *cond[16] = {"eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc",
                                "hi", "ls", "ge", "lt", "gt", "le", "", ""};
+
 static const char *opcodes[16] = {"and", "eor", "sub", "rsb", "add", "adc", "sbc", "rsc",
                                   "tst", "teq", "cmp", "cmn", "orr", "mov", "bic", "mvn"};
 
@@ -397,8 +361,6 @@ static const char *w[2] = {"", "!"};
 static const char *u[2] = {"-", ""};
 
 static const char *b[2] = {"", "b"};
-
-//static const char
 
 // bit masking for data processing instruction
 struct insn  {
@@ -571,13 +533,10 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 			//rot = rot << 1;
 			int immediate = (in.shift & 0b0001) << 7 | in.shift_op << 5 | in.one << 4 | in.reg_op2;
 			int val = immediate;
-			printf("%d\n", val);
-			printf("%d\n", rot);
 			if (rot != 0) {
 			    val = rotate(immediate, rot);
 			}
-			printf("after %d\n", val);
-		        instructions_helper(buf, bufsize, "%s%s %s, %s, #%d", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], val);
+		    instructions_helper(buf, bufsize, "%s%s %s, %s, #%d", opcodes[in.opcode], cond[in.cond], reg[in.reg_dst], reg[in.reg_op1], val);
 		}
 
 	}
