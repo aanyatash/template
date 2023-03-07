@@ -9,8 +9,8 @@ CS107E_AUTO:   after call dst=[107e], expected=[107e]
 CS107E_AUTO: call snprintf(dst, 20, "%08x", 0xa01c)
 CS107E_AUTO:   after call dst=[0000a01c], expected=[0000a01c]
 CS107E_AUTO: call snprintf(dst, 20, "%p", (void *)0x7f94)
-CS107E_AUTO: ) ***
+CS107E_AUTO:  *** FATAL ERROR (0x00007f94) ***
 CS107E_AUTO: call snprintf(dst, 20, "%p", ((void *)0))
-CS107E_AUTO: ) ***
+CS107E_AUTO:  *** FATAL ERROR (0x00000000) ***
 
 CS107E_AUTO: END TEST
