@@ -513,7 +513,7 @@ void test_disassemble(void)
     printf("Encoded instruction %x disassembles to %pI\n", bne,  (unsigned int*)&bne);
 	printf("\n");
 
-	for (int i = 0; i < 30; i++) {
+	for (int i = 0; i < 30; i++) { // compared to x/30i 0x8000 in gdb and all correct!
         printf("Encoded instruction %x disassembles to %pI\n", *(first + i), first + i);
 	}
 
