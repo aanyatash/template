@@ -1,5 +1,5 @@
 str r1, [r2, r4]!
-str r1, [r2], r4
+str r1, [r2], -r4
 ldr r1, [r2, #16]
 ldr r1, [r2, r3, lsl #2]
 ldreqb r1, [r6, #5]
@@ -18,3 +18,5 @@ loop:
 
 ldr r0, [r1]
 str r14, [r2]
+ldrb r14, [r3, r2]!
+strb r12, [r1, #-2]

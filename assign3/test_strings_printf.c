@@ -502,6 +502,7 @@ void test_disassemble(void)
     const unsigned int sub = 0xe24bd00c;
     const unsigned int mov = 0xe3a0006b;
     const unsigned int bne = 0x1afffffa;
+    unsigned int *first = (unsigned int*)0x8000;
 
     // If you have not implemented the extension, core printf
     // will output address not disassembled followed by I
@@ -510,7 +511,14 @@ void test_disassemble(void)
     printf("Encoded instruction %x disassembles to %pI\n", sub,  (unsigned int*)&sub);
     printf("Encoded instruction %x disassembles to %pI\n", mov, (unsigned int*)&mov);
     printf("Encoded instruction %x disassembles to %pI\n", bne,  (unsigned int*)&bne);
+	printf("\n");
 
+	for (int i = 0; i < 30; i++) {
+        printf("Encoded instruction %x disassembles to %pI\n", *(first + i), first + i);
+	}
+
+    printf("\n");
+   
     unsigned int *fn = (unsigned int *)sum; // diassemble instructions from sum function
     for (int i = 0; i < 10; i++) { // prints ten instructions
         printf("%p:  %x  %pI\n", &fn[i], fn[i], &fn[i]);
@@ -518,32 +526,82 @@ void test_disassemble(void)
 }
 
 void test_disassemble_instr(void) {
+   char buf[100];
+   memset(buf, 100, '\0');
+   size_t bufsize = sizeof(buf);
+
    unsigned int instr1 = 0xe7a21004; 	//str	r1, [r2, r4]!
-   unsigned int instr2 = 0xe6821004; 	//str	r1, [r2], r4
+   decode_instruction(buf, bufsize, &instr1);
+   assert(strcmp(buf, "str r1, [r2, r4]!") == 0);
+
+   unsigned int instr2 = 0xe6021004; 	//str	r1, [r2], -r4
+   decode_instruction(buf, bufsize, &instr2);
+   assert(strcmp(buf, "str r1, [r2], -r4") == 0);
+
    unsigned int instr3 = 0xe5921010; 	//ldr	r1, [r2, #16]
+   decode_instruction(buf, bufsize, &instr3);
+   assert(strcmp(buf, "ldr r1, [r2, #16]") == 0);
+
    unsigned int instr4 = 0xe7921103; 	//ldr	r1, [r2, r3, lsl #2]
-   unsigned int instr5 = 0x05d61005; 	//ldrbeq	r1, [r6, #5]
+   decode_instruction(buf, bufsize, &instr4);
+   assert(strcmp(buf, "ldr r1, [r2, r3, lsl #2]") == 0);
+
+   unsigned int instr5 = 0x05d61005; 	//ldreqb	r1, [r6, #5]
+   decode_instruction(buf, bufsize, &instr5);
+   assert(strcmp(buf, "ldreqb r1, [r6, #5]") == 0);
 
 //00000014 <loop>:
    unsigned int instr6 = 0xe0821003; 	//add	r1, r2, r3
+   decode_instruction(buf, bufsize, &instr6);
+   assert(strcmp(buf, "add r1, r2, r3") == 0);
+
    unsigned int instr7 = 0xe0432004; 	//sub	r2, r3, r4
+   decode_instruction(buf, bufsize, &instr7);
+   assert(strcmp(buf, "sub r2, r3, r4") == 0);
+
    unsigned int instr8 = 0x00821003; 	//addeq	r1, r2, r3
+   decode_instruction(buf, bufsize, &instr8);
+   assert(strcmp(buf, "addeq r1, r2, r3") == 0);
+
    unsigned int instr9 = 0x10821003; 	//addne	r1, r2, r3
+   decode_instruction(buf, bufsize, &instr9);
+   assert(strcmp(buf, "addne r1, r2, r3") == 0);
+
    unsigned int instr10 = 0xe2821028; //add	r1, r2, #40, 0	; 0x28
+   decode_instruction(buf, bufsize, &instr10);
+   assert(strcmp(buf, "add r1, r2, #40") == 0);
+
    unsigned int instr11 = 0xe2432eff; //sub	r2, r3, #4080	; 0xff0
+   decode_instruction(buf, bufsize, &instr11);
+   assert(strcmp(buf, "sub r2, r3, #4080") == 0);
+
    unsigned int instr12 = 0xe1a00389; //lsl	r0, r9, #7
+   decode_instruction(buf, bufsize, &instr12);
+   assert(strcmp(buf, "mov r0, r9, lsl #7") == 0);
+
    unsigned int instr13 = 0xe1a04638; //lsr	r4, r8, r6
+   decode_instruction(buf, bufsize, &instr13);
+   assert(strcmp(buf, "mov r4, r8, lsr r6") == 0);
+
    unsigned int instr14 = 0x1afffff6; //bne	14 <loop>
+   decode_instruction(buf, bufsize, &instr14);
+   // no assert test becuase of address
 
    unsigned int instr15 = 0xe5910000; 	//ldr	r0, [r1]
-   unsigned int instr16 = 0xe582e000;    //str lr, [r2]
+   decode_instruction(buf, bufsize, &instr15);
+   assert(strcmp(buf, "ldr r0, [r1]") == 0);
 
-//   unsigned int instructions[14] = {instr1, instr2, instr3, instr4, instr5, instr6, instr7, instr8,
-//										instr9, instr10, instr11, instr12, instr13, instr14};
-//
-//    for (int i = 0; i < 14; i++) {
-//        printf("%p:  %x  %pI\n", &(intructions[i]), instructions[i], (unsigned int *) (&(instuctions[i])));
-//	}
+   unsigned int instr16 = 0xe582e000;    //str lr, [r2]
+   decode_instruction(buf, bufsize, &instr16);
+   assert(strcmp(buf, "str lr, [r2]") == 0);
+
+   unsigned int instr17 = 0xe7f3e002; 	//ldrb	lr, [r3, r2]!
+   decode_instruction(buf, bufsize, &instr17);
+   assert(strcmp(buf, "ldrb lr, [r3, r2]!") == 0);
+
+   unsigned int instr18 = 0xe541c002; 	//strb	ip, [r1, #-2]
+   decode_instruction(buf, bufsize, &instr18);
+   assert(strcmp(buf, "strb ip, [r1, #-2]") == 0);
 
     printf("Encoded instruction %x disassembles to %pI\n", instr1, (unsigned int*) &instr1);
     printf("Encoded instruction %x disassembles to %pI\n", instr2,  (unsigned int*)&instr2);
@@ -561,6 +619,8 @@ void test_disassemble_instr(void) {
     printf("Encoded instruction %x disassembles to %pI\n", instr14,  (unsigned int*)&instr14);
     printf("Encoded instruction %x disassembles to %pI\n", instr15, (unsigned int*) &instr15);
     printf("Encoded instruction %x disassembles to %pI\n", instr16,  (unsigned int*)&instr16);
+    printf("Encoded instruction %x disassembles to %pI\n", instr17, (unsigned int*) &instr17);
+    printf("Encoded instruction %x disassembles to %pI\n", instr18,  (unsigned int*)&instr18);
 
 
 }

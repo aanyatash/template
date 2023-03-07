@@ -12,15 +12,6 @@
 void decode_instruction(char* buf, size_t bufsize, unsigned int *addr);
 static int rotate(int immediate, int rot); 
 
-// format to print in: instr dst, op1, op2
-
-//static void sample_use(unsigned int *addr) { // address of instruction
-//    struct insn in = *(struct insn *)addr;  // derefernce address to get code
-//    printf("opcode is %s, s is %d, reg_dst is r%d\n", opcodes[in.opcode], in.s, in.reg_dst);
-//}
-
-
-
 /** Prototypes for internal helpers.
  * Typically these would be qualified as static (private to module)
  * but, in order to call them from the test program, we declare them externally
@@ -436,7 +427,7 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 	}
     struct insn in = *(struct insn *)addr;  // derefernce address to get code
 
-    // Branch instruction - not exhange
+    // Branch instruction - not exchange
 	if (in.kind == 0b10 && in.imm == 1) {
 	    struct branch_insn branch_in = *(struct branch_insn *)addr; // use branch struct for bit masking
 		// Calculate offset using address of instruction as pc address anchor
@@ -445,12 +436,12 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 	}
 
     // Data processing instructions
-	if (in.kind == 0) {
-	    // this check for a bx lr instruction first
+	else if (in.kind == 0) {
+	    // this check for a bx lr instruction first - teq is actually equivalent to this!
 	    if (in.imm == 0 && ((in.opcode & 0b1000) == 0b1000)) {
 		     struct bx_insn bx_in = *(struct bx_insn *)addr; // bx struct for bit masking
 			 if (bx_in.middle == 0b000100101111111111110001) { // bit pattern for bx instruction
-				snprintf(buf, bufsize, "bx %s", reg[bx_in.reg_dst]);
+				snprintf(buf, bufsize, "bx%s %s", cond[bx_in.cond], reg[bx_in.reg_dst]);
 				return;
 			 }
 		}
@@ -541,12 +532,12 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		    // No immediate value and no shifting involved
 		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
 		        snprintf(buf, bufsize, "%s%s%s %s, [%s]%s", mem[mem_in.L], cond[mem_in.cond], 
-				b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src], w[mem_in.W]);
+				b[mem_in.B], reg[mem_in.reg_src], reg[mem_in.reg_dst], w[mem_in.W]);
 		    }
 			// no register shifting, but there is an immediate offset to add
 			else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
 		        snprintf(buf, bufsize, "%s%s%s %s, [%s, #%s%d]%s", mem[mem_in.L], cond[mem_in.cond],  
-				b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
+				b[mem_in.B], reg[mem_in.reg_src], reg[mem_in.reg_dst], u[mem_in.U], mem_in.shift_imm, w[mem_in.W]);
 		    }
 			else { // there is an immediate value in this case, so a register shift to add
 			    // must use different mapping struct for an immeidate value shift
@@ -556,13 +547,13 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		        struct shift in_shift = *(struct shift *)shift;
 				// no shift to be applied, just an additional register
 		        if (mem_in.imm == 1 && in_shift.shift == 0) {
-		            snprintf(buf, bufsize, "%s%s%s %s, [%s, %s]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
-				    reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2], w[mem_in.W]);
+		            snprintf(buf, bufsize, "%s%s%s %s, [%s, %s%s]%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				    reg[mem_in.reg_src], reg[mem_in.reg_dst], u[mem_in.U], reg[in_shift.reg_op2], w[mem_in.W]);
 		        }
 				// shift operation to be applied to additional register param
 		        else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
-		            snprintf(buf, bufsize, "%s%s%s %s, [%s, %s #%s%d]%s", mem[mem_in.L], cond[mem_in.cond], 
-				    b[mem_in.B], reg[mem_in.reg_dst], reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], 
+		            snprintf(buf, bufsize, "%s%s%s %s, [%s, %s, %s #%s%d]%s", mem[mem_in.L], cond[mem_in.cond], 
+				    b[mem_in.B], reg[mem_in.reg_src], reg[mem_in.reg_dst], reg[in_shift.reg_op2], sh[in_shift.shift_op], u[mem_in.U], 
 				    in_shift.shift, w[mem_in.W]);
 		    }  
 			}
@@ -571,11 +562,11 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		    // No immediate value and no shifting involved
 		    if (mem_in.imm == 0 && mem_in.shift_imm == 0) {
 		        snprintf(buf, bufsize, "%s%s%s %s, [%s]", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
-				reg[mem_in.reg_dst], reg[mem_in.reg_src]);
+				reg[mem_in.reg_src], reg[mem_in.reg_dst]);
 		    }
 		    else if (mem_in.imm == 0 && mem_in.shift_imm != 0) {
 		        snprintf(buf, bufsize, "%s%s%s %s, [%s], #%s%d", mem[mem_in.L], cond[mem_in.cond],  b[mem_in.B], 
-				reg[mem_in.reg_dst], reg[mem_in.reg_src], u[mem_in.U], mem_in.shift_imm);
+				reg[mem_in.reg_src], reg[mem_in.reg_dst], u[mem_in.U], mem_in.shift_imm);
 		    }
 			else { // there is an immediate value in this case, so a register shift to add
 			    // must use different mapping struct for an immeidate value shift
@@ -585,15 +576,18 @@ void decode_instruction(char* buf, size_t bufsize, unsigned int *addr) {
 		        struct shift in_shift = *(struct shift *)shift;
 				// no shift to be applied, just an additional register
 		        if (mem_in.imm == 1 && in_shift.shift == 0) {
-		            snprintf(buf, bufsize, "%s%s%s %s, [%s], %s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
-				    reg[mem_in.reg_dst], reg[mem_in.reg_src], reg[in_shift.reg_op2]);
+		            snprintf(buf, bufsize, "%s%s%s %s, [%s], %s%s", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				    reg[mem_in.reg_src], reg[mem_in.reg_dst], u[mem_in.U], reg[in_shift.reg_op2]);
 		        }
 		        // shift operation to be applied to additional register param
 		        else if (mem_in.imm == 1 && mem_in.shift_imm != 0) {
-		            snprintf(buf, bufsize, "%s%s%s %s, [%s], %s #%s%d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
-				    reg[mem_in.reg_dst], reg[mem_in.reg_src], sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm);
+		            snprintf(buf, bufsize, "%s%s%s %s, [%s], %s %s #%s%d", mem[mem_in.L], cond[mem_in.cond], b[mem_in.B], 
+				    reg[mem_in.reg_src], reg[mem_in.reg_dst], reg[in_shift.reg_op2], sh[in_shift.shift_op], u[mem_in.U], mem_in.shift_imm);
 		        }
 			}
 		}
+	}
+	else {
+		snprintf(buf, bufsize, "%x", *addr);
 	}
 }
