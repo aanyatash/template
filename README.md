@@ -31,7 +31,7 @@
 ## assign3
 ### Timeliness
 - `assign3-submit` tag @ Tue 2/7 15:59 __on/before duedate__ 
-- `assign3-extension` tag not found
+- `assign3-extension` tag @ Mon 3/6 22:04 __late__ 
 ### Code Review
 - Style: __ok__
 - Tests: __+__
@@ -41,6 +41,9 @@
 - Unit tests (P2): __2/4__
 - Unit tests (P3): __2/2__
 - 3 failed unit tests available for revise and resubmit. See issues here: [assign3 issues](https://github.com/cs107e/winter22-aanyatash/milestone/2)
+### Extension
+- Extension Disassemble: __Complete++__
+    - data processing + branch + load/store, great job!
 -----
 ## assign4
 ### Timeliness
