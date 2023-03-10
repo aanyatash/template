@@ -631,9 +631,11 @@ void test23(void) {
 	char buf[20];
 	size_t bufsize = sizeof(buf);
     snprintf(dst, 20, "%p", (void *)0x7f94);
-    snprintf(buf, bufsize, "dst = %s \n", dst);
+	printf("%s \n", dst);
+    //snprintf(buf, bufsize, "dst = %s \n", dst);
     snprintf(dst, 20, "%p", NULL);
-    snprintf(buf, bufsize, "dst = %s \n", dst);
+	printf("%s \n", dst);
+    //snprintf(buf, bufsize, "dst = %s \n", dst);
 }
 
 void main(void)

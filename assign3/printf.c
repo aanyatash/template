@@ -255,7 +255,7 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 				unsigned_to_base(max + i, maxsize - i, val, 16, 0);   // problem: it converts it to a signed integer
 			}
 			else if (format[format_i + 1] == 'p') { // pointer address formatting code
-				int val = va_arg(args, int);
+				unsigned int val = va_arg(args, unsigned int);
 		        if (format[format_i + 2] == 'I') {
 				    format_i += 1;
 					decode_instruction(max + i, maxsize - i,(unsigned int *) val);
@@ -264,7 +264,7 @@ int vsnprintf(char *buf, size_t bufsize, const char *format, va_list args)
 				    // appends address after '0x'
 				    max[i] = '0';
 				    max[i+1] = 'x';
-				    unsigned_to_base(max + i + 2, maxsize - i - 1, val, 16, 8); 
+				    unsigned_to_base(max + i + 2, maxsize - i - 2, val, 16, 8); 
 				}
 		    }
 			i = strlen(max); // Only adds to end of max

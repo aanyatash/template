@@ -20,3 +20,4 @@ ldr r0, [r1]
 str r14, [r2]
 ldrb r14, [r3, r2]!
 strb r12, [r1, #-2]
+rrx r1, r2
