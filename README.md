@@ -69,7 +69,7 @@
 ### Test Results
 - Unit tests (P1): __6/7__
 - Unit tests (P2): __5/7__
-- Unit tests (P3): __0/1__
+- Unit tests (P3): __1/2__
 - 4 failed unit tests available for revise and resubmit. See issues here: [assign5 issues](https://github.com/cs107e/winter22-aanyatash/milestone/3)
 -----
 ## assign6
