@@ -630,12 +630,19 @@ void test23(void) {
     char dst[20];
 	char buf[20];
 	size_t bufsize = sizeof(buf);
+    //snprintf(dst, 20, "%p", NULL);
+	//printf("%s \n", dst);
     snprintf(dst, 20, "%p", (void *)0x7f94);
-	printf("%s \n", dst);
-    //snprintf(buf, bufsize, "dst = %s \n", dst);
+	//printf("%s \n", dst);
+    snprintf(buf, bufsize, "dst = %s \n", dst);
     snprintf(dst, 20, "%p", NULL);
-	printf("%s \n", dst);
-    //snprintf(buf, bufsize, "dst = %s \n", dst);
+//	printf("%s \n", dst);
+//    snprintf(dst, 20, "%p", (void *) 0x8000);
+//	printf("%s \n", dst);
+//    snprintf(dst, 20, "%p", ((void *) 0));
+//	printf("%s \n", dst);
+
+    snprintf(buf, bufsize, "dst = %s \n", dst);
 }
 
 void main(void)

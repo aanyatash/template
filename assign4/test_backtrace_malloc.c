@@ -48,7 +48,7 @@ static unsigned int factorial(int c) {
 		    print_backtrace(); // should have diff, factorial and recursion_backtrace frames
 		    return 1;
 		}
-		return 1 * factorial(c-1);
+		return c * factorial(c-1);
 }
 
 static int diff(int a, int b) {
@@ -306,16 +306,16 @@ void main(void)
     //uart_init();
     //uart_putstring("Start execute main() in tests/test_backtrace_malloc.c\n");
 
-    //test_name_of();
+    test_name_of();
 
-    //test_backtrace_simple();
-    //test_backtrace_simple(); // Again so you can see the main offset change!
-    //test_backtrace_complex(7);  // Slightly tricky backtrace
-    //recursion_backtrace(); // tricky backtrace
+    test_backtrace_simple();
+    test_backtrace_simple(); // Again so you can see the main offset change!
+    test_backtrace_complex(7);  // Slightly tricky backtrace
+    recursion_backtrace(); // tricky backtrace
 
-    //test_heap_dump();
-	test_recyle();
-	test_split();
+    test_heap_dump();
+	//test_recyle();
+	//test_split();
 
     //test_heap_simple();
 	//test_coalesce();	

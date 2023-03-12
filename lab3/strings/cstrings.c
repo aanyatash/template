@@ -17,7 +17,10 @@ static size_t strlen(const char *str)
 
 static char *strcpy(char *dst, const char *src)
 {
-    // Your turn -- implement strcpy!
+    const char length = strlen(src); 
+	for (int i = 0; i < length + 1; i++) {
+		dst[i] = src[i];
+	}
     return dst;
 }
 

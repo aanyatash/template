@@ -14,6 +14,7 @@ static void print_glyph(char ch)
 
     // after your addition, code below will print the glyph as
     // "ascii art" using # and space characters
+	unsigned char (*img)[font_get_glyph_width()] = (unsigned char (*) [font_get_glyph_width()])buf;
 
     for (int y = 0; y < font_get_glyph_height(); y++) {
         for (int x = 0; x < font_get_glyph_width(); x++) {

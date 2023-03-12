@@ -12,8 +12,15 @@
  */
 static char *strndup(const char *src, size_t n)
 {
-    // TODO fill this in
-    return "";
+    
+    char* result = malloc(n+1);
+    for (int i = 0; i < n; i++) {
+		if (n) {
+		    result[i] = src[i];
+		}
+	}
+	result[n] = '\0';
+    return result;
 }
 
 static bool isspace(char ch)
@@ -51,4 +58,5 @@ void main(void)
     }
 
     uart_putchar(EOT);
+	free(array);
 }

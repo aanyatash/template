@@ -10,7 +10,7 @@ static int five_static_init = 3;
 static const int six_static_const;
 static const int seven_static_const_init = 4;
 
-//const int eight_array[5];  // uncommment this line to add array symbol
+const int eight_array[5];  // uncommment this line to add array symbol
 
 static int use_variables(int a, int b)
 {

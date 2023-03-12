@@ -164,13 +164,14 @@ void heap_dump (const char *label)
     printf("Heap segment at %p - %p\n", heap_start, heap_end);
 	printf("\n");
     struct header *cur_header = (struct header *) heap_start;
-	char *cur_data;
+	char *cur_data;	
 	while (cur_header != heap_end) { // Loop through all the headers until the end
 		printf("Payload size: %d\n", cur_header->payload_size);
 		printf("Status: %d\n", cur_header->status);
         int i = 0;
 		cur_data = (char *) (cur_header + 1);
-		// Print data stored with cur_header. Prints a max of 16 bytes.
+		// Print data stored with cur_header. Prints a max of 16 lines.
+		// Prints data stored in every 4 bytes since, it's cast to a digit
 		while (i < 16 && i < cur_header->payload_size && cur_data != heap_end) {
 		    printf("Current data: %c\n", cur_data[i]);
 			i++;

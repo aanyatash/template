@@ -12,8 +12,11 @@ void main (void)
     for (int i = 0; i < 5; i++) {
         uart_putstring("hello, laptop\n");
         timer_delay(1);
+		printf("%d", i);
     }
     printf("We %s printf!\n", "<3");
-
+	gpio_set_output(GPIO_PIN20);
+	gpio_set_output(GPIO_PIN21);
+    printf("%x", *FSEL2);
     uart_putchar(EOT); // not strictly necessary, but signals to rpi-run that program is done
 }

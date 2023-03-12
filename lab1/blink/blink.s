@@ -1,4 +1,4 @@
-.equ DELAY, 0x3F0000
+.equ DELAY, 0x1F8000
 
 // configure GPIO 20 for output
 ldr r0, FSEL2
