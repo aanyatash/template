@@ -50,8 +50,8 @@
 - `assign4-submit` tag @ Sun 2/12 14:27 __on/before duedate__ 
 - `assign4-extension` tag not found
 ### Code Review
-- Style: __ungraded__
-- Tests: __ungraded__
+- Style: __ok__
+- Tests: __+__
 - Grader review comments on [pull request](https://github.com/cs107e/winter22-aanyatash/pull/3)
 ### Test Results
 - Unit tests (P1): __7/7__
