@@ -63,8 +63,8 @@
 - `assign5-submit` tag @ Tue 2/21 13:56 __on/before duedate__ 
 - `assign5-extension` tag not found
 ### Code Review
-- Style: __ungraded__
-- Tests: __ungraded__
+- Style: __+__
+- Tests: __+__
 - Grader review comments on [pull request](https://github.com/cs107e/winter22-aanyatash/pull/3)
 ### Test Results
 - Unit tests (P1): __6/7__
