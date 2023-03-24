@@ -24,7 +24,7 @@
 - Unit tests (P1): __7/7__
 - Unit tests (P2): __2/2__
 - Unit tests (P3): __0/1__
-- 1 failed unit tests available for revise and resubmit. See issues here: [assign2 issues](https://github.com/cs107e/winter22-aanyatash/milestone/1)
+- Posted 1 issues for failed unit tests on `assign2-submit`. These issues available for revise and resubmit. View current status of open issues here: [assign2 issues](https://github.com/cs107e/winter22-aanyatash/milestone/1)
 ### Extension
 - Extension Set time: __Complete__
 -----
@@ -40,7 +40,7 @@
 - Unit tests (P1): __7/8__
 - Unit tests (P2): __2/4__
 - Unit tests (P3): __2/2__
-- 3 failed unit tests available for revise and resubmit. See issues here: [assign3 issues](https://github.com/cs107e/winter22-aanyatash/milestone/2)
+- Posted 3 issues for failed unit tests on `assign3-submit`. These issues available for revise and resubmit. View current status of open issues here: [assign3 issues](https://github.com/cs107e/winter22-aanyatash/milestone/2)
 ### Extension
 - Extension Disassemble: __Complete++__
     - data processing + branch + load/store, great job!
@@ -70,7 +70,7 @@
 - Unit tests (P1): __6/7__
 - Unit tests (P2): __5/7__
 - Unit tests (P3): __1/2__
-- 4 failed unit tests available for revise and resubmit. See issues here: [assign5 issues](https://github.com/cs107e/winter22-aanyatash/milestone/3)
+- Posted 4 issues for failed unit tests on `assign5-submit`. These issues available for revise and resubmit. View current status of open issues here: [assign5 issues](https://github.com/cs107e/winter22-aanyatash/milestone/3)
 -----
 ## assign6
 ### Timeliness
@@ -89,8 +89,11 @@
 ### Timeliness
 - `assign7-submit` tag @ Mon 3/6 16:45 __on/before duedate__ 
 - `assign7-extension` tag not found
-### Code Review
 ### Test Results
 - Unit tests (P1): __2/2__
 - Unit tests (P2): __1/1__
 -----
+## Full System Bonus
+- `final-submit` tag @ Sun 3/12 13:26 __on/before duedate__ 
+- Full System: __Complete__
+    - Congratulations!
