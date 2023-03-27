@@ -77,8 +77,8 @@
 - `assign6-submit` tag @ Tue 2/28 16:52 __on/before duedate__ 
 - `assign6-extension` tag not found
 ### Code Review
-- Style: __ungraded__
-- Tests: __ungraded__
+- Style: __ok__
+- Tests: __+__
 - Grader review comments on [pull request](https://github.com/cs107e/winter22-aanyatash/pull/3)
 ### Test Results
 - Unit tests (P1): __8/8__
